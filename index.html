@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Majestic Tracker | Glassmorphism</title>
+    <style>
+        :root {
+            --text-main: #ffffff;
+            --text-muted: #cccccc;
+            --accent-color: #e6007e;
+            --success: #10b981;
+            --danger: #ef4444;
+            --glass-bg: rgba(30, 30, 30, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f0f0f;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(230, 0, 126, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: 'Arial Black', Impact, sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: -1px;
+            text-transform: capitalize;
+            position: relative;
+            display: inline-block;
+            color: white;
+            text-shadow: 0 0 5px rgba(255,255,255,0.2);
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 47px;
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-color);
+        }
+
+        .burger-menu {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 5px;
+        }
+
+        .burger-menu div {
+            width: 25px;
+            height: 3px;
+            background-color: var(--text-main);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        .server-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 300px;
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            border-radius: 0 0 0 var(--border-radius);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .server-menu.open {
+            transform: translateX(0);
+        }
+
+        .server-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .server-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .server-item img {
+            width: 30px;
+            height: 30px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+            background-color: #111;
+        }
+
+        .layout {
+            display: flex;
+            flex: 1;
+            padding: 20px 30px;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1000px;
+            margin-right: auto;
+        }
+
+        .finance-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            box-shadow: var(--glass-shadow);
+            font-size: 18px;
+            font-weight: bold;
+            flex-wrap: wrap;
+        }
+
+        .finance-item {
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.5s ease;
+        }
+
+        .finance-item.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .finance-item.buy { color: var(--danger); }
+        .finance-item.sell { color: var(--success); }
+
+        .total-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .total-balance {
+            font-size: 22px;
+            padding: 8px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--glass-border);
+            transition: color 0.3s, border-color 0.3s;
+        }
+
+        .total-balance.positive { color: var(--success); border-color: rgba(16, 185, 129, 0.5); }
+        .total-balance.negative { color: var(--danger); border-color: rgba(239, 68, 68, 0.5); }
+
+        .tracker-gif {
+            height: 30px;
+            width: auto;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .tracker-gif.show {
+            opacity: 1;
+        }
+
+        .table-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--glass-shadow);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            color: var(--text-muted);
+            padding: 12px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .action-type {
+            font-weight: bold;
+        }
+        .action-type.buy-text { color: var(--danger); }
+        .action-type.sell-text { color: var(--success); }
+        .action-type.installment-text { color: #eab308; }
+
+        .right-panel {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: sticky;
+            top: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--glass-shadow);
+            margin-left: auto;
+        }
+
+        .right-panel h3 {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-reset {
+            margin-top: 20px;
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ff8a8a;
+        }
+
+        .btn-reset:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--danger);
+            color: white;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 400px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-submit {
+            background: var(--accent-color);
+            color: white;
+            border: 1px solid transparent;
+            flex: 1;
+        }
+
+        .btn-submit:hover {
+            background: #b80065;
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .color-profit { color: var(--success); font-weight: bold; }
+        .color-loss { color: var(--danger); font-weight: bold; }
+        
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Majestic</div>
+        <div class="burger-menu" id="burgerMenu">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+
+        <div class="server-menu" id="serverMenu">
+        </div>
+    </header>
+
+    <div class="layout">
+        
+        <div class="main-content">
+            <div class="finance-panel">
+                <div class="finance-item buy" id="finBuy">Купил: 0</div>
+                <div class="finance-item sell" id="finSell">Продал: 0</div>
+                <div class="total-block">
+                    <div class="total-balance" id="totalBalance">Итог: 0</div>
+                    <img src="media/123.gif" id="trackerGif" class="tracker-gif" alt="tracker">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Действие</th>
+                            <th>Предмет</th>
+                            <th>Цена</th>
+                            <th>Средний рынок</th>
+                            <th>Разница / Детали</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <h3>Управление сделками</h3>
+            <button class="btn" onclick="openModal('buy')">Купил</button>
+            <button class="btn" onclick="openModal('sell')">Продал</button>
+            <button class="btn" onclick="openModal('installment')">Рассрочка</button>
+            <button class="btn btn-reset" onclick="resetAll()">Сбросить всё</button>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle">Действие</h2>
+            <form id="actionForm">
+                <div class="form-group">
+                    <label>Название предмета</label>
+                    <input type="text" id="carName" required>
+                </div>
+                <div class="form-group">
+                    <label>Цена покупки/продажи</label>
+                    <input type="number" id="price" required>
+                </div>
+                <div class="form-group">
+                    <label>Средний рынок</label>
+                    <input type="number" id="marketPrice" required>
+                </div>
+                
+                <div id="installmentFields" style="display: none;">
+                    <div class="form-group">
+                        <label>У кого купил</label>
+                        <input type="text" id="sellerName">
+                    </div>
+                    <div class="form-group">
+                        <label>Сумма платежа (в день/неделю)</label>
+                        <input type="number" id="paymentAmount">
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button type="submit" class="btn btn-submit" id="submitBtn">Подтвердить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const servers = [
+            "memphis", "orlando", "phoenix", "portland", "san francisco", 
+            "detroid", "los angeles", "boston", "atlanta", "san diego", 
+            "new york", "chicago", "washington", "miami", "las wegas", 
+            "dallas", "houston", "seattle", "denver"
+        ];
+
+        const serverMenu = document.getElementById('serverMenu');
+        servers.forEach((server, index) => {
+            const div = document.createElement('div');
+            div.className = 'server-item';
+            div.innerHTML = `
+                <img src="media/${index + 1}.png" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'30\\' height=\\'30\\'><rect width=\\'30\\' height=\\'30\\' fill=\\'%23333\\'/></svg>'">
+                <span>${server.charAt(0).toUpperCase() + server.slice(1)}</span>
+            `;
+            serverMenu.appendChild(div);
+        });
+
+        document.getElementById('burgerMenu').addEventListener('click', () => {
+            serverMenu.classList.toggle('open');
+        });
+
+        let state = {
+            logs: [],
+            totalBuy: 0,
+            totalSell: 0,
+            marketDatabase: {}
+        };
+
+        let currentAction = null;
+
+        function loadState() {
+            const saved = localStorage.getItem('majesticTrackerState');
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                } catch (e) {
+                    console.error("Ошибка загрузки данных");
+                }
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('majesticTrackerState', JSON.stringify(state));
+        }
+
+        function formatMoney(amount) {
+            amount = Math.abs(amount);
+            if (amount >= 1000000) {
+                return (amount / 1000000).toFixed(1).replace('.0', '') + 'kk';
+            } else if (amount >= 1000) {
+                return (amount / 1000).toFixed(1).replace('.0', '') + 'k';
+            }
+            return amount.toString();
+        }
+
+        function openModal(action) {
+            currentAction = action;
+            const modal = document.getElementById('modalOverlay');
+            const title = document.getElementById('modalTitle');
+            const installmentFields = document.getElementById('installmentFields');
+            
+            document.getElementById('actionForm').reset();
+            
+            if (action === 'buy') {
+                title.innerText = 'Купить предмет';
+                installmentFields.style.display = 'none';
+            } else if (action === 'sell') {
+                title.innerText = 'Продать предмет';
+                installmentFields.style.display = 'none';
+            } else if (action === 'installment') {
+                title.innerText = 'Взять в рассрочку';
+                installmentFields.style.display = 'block';
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function resetAll() {
+            const confirmed = confirm("Вы уверены, что хотите полностью сбросить все данные? Это действие нельзя отменить.");
+            if (confirmed) {
+                state = {
+                    logs: [],
+                    totalBuy: 0,
+                    totalSell: 0,
+                    marketDatabase: {}
+                };
+                saveState();
+                render();
+            }
+        }
+
+        document.getElementById('carName').addEventListener('input', function(e) {
+            const name = e.target.value.toLowerCase().trim();
+            if (state.marketDatabase[name]) {
+                document.getElementById('marketPrice').value = state.marketDatabase[name];
+            }
+        });
+
+        document.getElementById('actionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const carName = document.getElementById('carName').value.trim();
+            const price = parseFloat(document.getElementById('price').value);
+            const marketPrice = parseFloat(document.getElementById('marketPrice').value);
+            
+            state.marketDatabase[carName.toLowerCase()] = marketPrice;
+
+            let difference = price - marketPrice;
+            let actionText = '';
+            let diffText = '';
+            let extraInfo = '';
+
+            if (currentAction === 'buy') {
+                actionText = 'Купил';
+                diffText = difference <= 0 
+                    ? `<span class="color-profit">Дешевле рынка на ${formatMoney(difference)}</span>`
+                    : `<span class="color-loss">Дороже рынка на ${formatMoney(difference)}</span>`;
+                state.totalBuy += price;
+            } else if (currentAction === 'sell') {
+                actionText = 'Продал';
+                diffText = difference >= 0 
+                    ? `<span class="color-profit">Дороже рынка на ${formatMoney(difference)}</span>`
+                    : `<span class="color-loss">Дешевле рынка на ${formatMoney(difference)}</span>`;
+                state.totalSell += price;
+            } else if (currentAction === 'installment') {
+                actionText = 'Рассрочка';
+                const seller = document.getElementById('sellerName').value.trim();
+                const payment = parseFloat(document.getElementById('paymentAmount').value) || 0;
+                extraInfo = `Продавец: ${seller} | Платеж: ${formatMoney(payment)}`;
+                diffText = difference <= 0 
+                    ? `<span class="color-profit">Выгодно на ${formatMoney(difference)}</span>`
+                    : `<span class="color-loss">Переплата ${formatMoney(difference)}</span>`;
+            }
+
+            const logEntry = {
+                id: Date.now(),
+                action: currentAction,
+                actionText: actionText,
+                carName: carName,
+                price: price,
+                marketPrice: marketPrice,
+                diffHtml: diffText,
+                extraInfo: extraInfo
+            };
+
+            state.logs.push(logEntry);
+            saveState();
+            render();
+            closeModal();
+        });
+
+        function render() {
+            const tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = '';
+
+            state.logs.forEach(log => {
+                const tr = document.createElement('tr');
+                
+                let actionClass = 'buy-text';
+                if (log.action === 'sell') actionClass = 'sell-text';
+                if (log.action === 'installment') actionClass = 'installment-text';
+
+                tr.innerHTML = `
+                    <td class="action-type ${actionClass}">${log.actionText}</td>
+                    <td>${log.carName}</td>
+                    <td>${formatMoney(log.price)}</td>
+                    <td>${formatMoney(log.marketPrice)}</td>
+                    <td>${log.diffHtml} ${log.extraInfo ? `<br><small style="color:#aaa">${log.extraInfo}</small>` : ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const finBuy = document.getElementById('finBuy');
+            const finSell = document.getElementById('finSell');
+            const totalBalance = document.getElementById('totalBalance');
+            const trackerGif = document.getElementById('trackerGif');
+
+            if (state.totalBuy > 0) {
+                finBuy.classList.add('show');
+                finBuy.innerHTML = `Купил: ${formatMoney(state.totalBuy)}`;
+            } else {
+                finBuy.classList.remove('show');
+            }
+
+            if (state.totalSell > 0) {
+                finSell.classList.add('show');
+                finSell.innerHTML = `Продал: ${formatMoney(state.totalSell)}`;
+            } else {
+                finSell.classList.remove('show');
+            }
+
+            const balance = state.totalSell - state.totalBuy;
+            totalBalance.classList.remove('positive', 'negative');
+            
+            if (balance > 0) {
+                totalBalance.classList.add('positive');
+                totalBalance.innerHTML = `Итог: +${formatMoney(balance)}`;
+            } else if (balance < 0) {
+                totalBalance.classList.add('negative');
+                totalBalance.innerHTML = `Итог: -${formatMoney(balance)}`;
+            } else {
+                totalBalance.innerHTML = `Итог: 0`;
+            }
+
+            if (state.logs.length > 0) {
+                trackerGif.classList.add('show');
+            } else {
+                trackerGif.classList.remove('show');
+            }
+        }
+
+        loadState();
+        render();
+    </script>
+</body>
+</html>
