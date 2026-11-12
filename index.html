@@ -399,6 +399,37 @@
 
         .color-profit { color: var(--success); font-weight: bold; }
         .color-loss { color: var(--danger); font-weight: bold; }
+
+        /* Стили для всплывающего уведомления */
+        .notification {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: var(--border-radius);
+            animation: fadeInOut 2s forwards;
+        }
+
+        .notification.profit {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .notification.loss {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
         
     </style>
 </head>
@@ -471,22 +502,23 @@
                     <label>Средний рынок</label>
                     <input type="number" id="marketPrice" required>
                 </div>
-                
                 <div id="installmentFields" style="display: none;">
                     <div class="form-group">
                         <label>У кого купил</label>
-                        <input type="text" id="sellerName">
+                        <input type="text" id="sellerName">  
                     </div>
                     <div class="form-group">
                         <label>Сумма платежа (в день/неделю)</label>
                         <input type="number" id="paymentAmount">
                     </div>
                 </div>
-
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-cancel" onclick="closeModal()">Отмена</button>
                     <button type="submit" class="btn btn-submit" id="submitBtn">Подтвердить</button>
                 </div>
+                
+                <!-- Блок для всплывающего уведомления -->
+                <div id="notification" class="notification"></div>
             </form>
         </div>
     </div>
@@ -553,8 +585,11 @@
             const modal = document.getElementById('modalOverlay');
             const title = document.getElementById('modalTitle');
             const installmentFields = document.getElementById('installmentFields');
+            const notification = document.getElementById('notification');
             
             document.getElementById('actionForm').reset();
+            notification.style.display = 'none';
+            notification.className = 'notification';
             
             if (action === 'buy') {
                 title.innerText = 'Купить предмет';
@@ -601,6 +636,7 @@
             const carName = document.getElementById('carName').value.trim();
             const price = parseFloat(document.getElementById('price').value);
             const marketPrice = parseFloat(document.getElementById('marketPrice').value);
+            const notification = document.getElementById('notification');
             
             state.marketDatabase[carName.toLowerCase()] = marketPrice;
 
@@ -609,43 +645,83 @@
             let diffText = '';
             let extraInfo = '';
 
+            // ЛОГИКА ДЛЯ ВСПЛЫВАЮЩЕГО УВЕДОМЛЕНИЯ
             if (currentAction === 'buy') {
-                actionText = 'Купил';
-                diffText = difference <= 0 
-                    ? `<span class="color-profit">Дешевле рынка на ${formatMoney(difference)}</span>`
-                    : `<span class="color-loss">Дороже рынка на ${formatMoney(difference)}</span>`;
-                state.totalBuy += price;
+                if (difference <= 0) {
+                    notification.innerText = `Вы в плюсе на ${formatMoney(Math.abs(difference))} (Купили дешевле)`;
+                    notification.classList.add('profit');
+                } else {
+                    notification.innerText = `Вы в минусе на ${formatMoney(difference)} (Купили дороже)`;
+                    notification.classList.add('loss');
+                }
             } else if (currentAction === 'sell') {
-                actionText = 'Продал';
-                diffText = difference >= 0 
-                    ? `<span class="color-profit">Дороже рынка на ${formatMoney(difference)}</span>`
-                    : `<span class="color-loss">Дешевле рынка на ${formatMoney(difference)}</span>`;
-                state.totalSell += price;
-            } else if (currentAction === 'installment') {
-                actionText = 'Рассрочка';
-                const seller = document.getElementById('sellerName').value.trim();
-                const payment = parseFloat(document.getElementById('paymentAmount').value) || 0;
-                extraInfo = `Продавец: ${seller} | Платеж: ${formatMoney(payment)}`;
-                diffText = difference <= 0 
-                    ? `<span class="color-profit">Выгодно на ${formatMoney(difference)}</span>`
-                    : `<span class="color-loss">Переплата ${formatMoney(difference)}</span>`;
+                if (difference >= 0) {
+                    notification.innerText = `Вы в плюсе на ${formatMoney(difference)} (Продали дороже)`;
+                    notification.classList.add('profit');
+                } else {
+                    notification.innerText = `Вы в минусе на ${formatMoney(Math.abs(difference))} (Продали дешевле)`;
+                    notification.classList.add('loss');
+                }
+            } else {
+                // Для рассрочки показываем просто разницу
+                if (difference <= 0) {
+                    notification.innerText = `Выгодная сделка (дешевле на ${formatMoney(Math.abs(difference))})`;
+                    notification.classList.add('profit');
+                } else {
+                    notification.innerText = `Переплата (дороже на ${formatMoney(difference)})`;
+                    notification.classList.add('loss');
+                }
             }
+            
+            notification.style.display = 'block';
+            notification.style.animation = 'none';
+            notification.offsetHeight; 
+            notification.style.animation = null; 
 
-            const logEntry = {
-                id: Date.now(),
-                action: currentAction,
-                actionText: actionText,
-                carName: carName,
-                price: price,
-                marketPrice: marketPrice,
-                diffHtml: diffText,
-                extraInfo: extraInfo
-            };
+            // Блокируем кнопку на время показа уведомления
+            document.getElementById('submitBtn').disabled = true;
 
-            state.logs.push(logEntry);
-            saveState();
-            render();
-            closeModal();
+            setTimeout(() => {
+                document.getElementById('submitBtn').disabled = false;
+
+                if (currentAction === 'buy') {
+                    actionText = 'Купил';
+                    diffText = difference <= 0 
+                        ? `<span class="color-profit">Дешевле рынка на ${formatMoney(difference)}</span>`
+                        : `<span class="color-loss">Дороже рынка на ${formatMoney(difference)}</span>`;
+                    state.totalBuy += price;
+                } else if (currentAction === 'sell') {
+                    actionText = 'Продал';
+                    diffText = difference >= 0 
+                        ? `<span class="color-profit">Дороже рынка на ${formatMoney(difference)}</span>`
+                        : `<span class="color-loss">Дешевле рынка на ${formatMoney(difference)}</span>`;
+                    state.totalSell += price;
+                } else if (currentAction === 'installment') {
+                    actionText = 'Рассрочка';
+                    const seller = document.getElementById('sellerName').value.trim();
+                    const payment = parseFloat(document.getElementById('paymentAmount').value) || 0;
+                    extraInfo = `Продавец: ${seller} | Платеж: ${formatMoney(payment)}`;
+                    diffText = difference <= 0 
+                        ? `<span class="color-profit">Выгодно на ${formatMoney(difference)}</span>`
+                        : `<span class="color-loss">Переплата ${formatMoney(difference)}</span>`;
+                }
+
+                const logEntry = {
+                    id: Date.now(),
+                    action: currentAction,
+                    actionText: actionText,
+                    carName: carName,
+                    price: price,
+                    marketPrice: marketPrice,
+                    diffHtml: diffText,
+                    extraInfo: extraInfo
+                };
+
+                state.logs.push(logEntry);
+                saveState();
+                render();
+                closeModal();
+            }, 2000);
         });
 
         function render() {
