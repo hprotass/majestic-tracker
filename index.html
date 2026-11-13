@@ -37,14 +37,13 @@
             overflow-x: hidden;
         }
 
+        /* Обновленная шапка (фрейм) с цветом #1D1D1D и уменьшенной высотой */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 30px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            padding: 8px 30px; 
+            background-color: #1D1D1D !important; 
             border-bottom: 1px solid var(--glass-border);
             position: relative;
             z-index: 10;
@@ -56,29 +55,10 @@
             gap: 20px;
         }
 
-        .logo {
-            font-family: 'Arial Black', Impact, sans-serif;
-            font-size: 28px;
-            font-weight: 900;
-            font-style: italic;
-            letter-spacing: -1px;
-            text-transform: capitalize;
-            position: relative;
-            display: inline-block;
-            color: white;
-            text-shadow: 0 0 5px rgba(255,255,255,0.2);
-        }
-
-        .logo::after {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 47px;
-            width: 6px;
-            height: 6px;
-            background-color: var(--accent-color);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent-color);
+        .logo-img {
+            height: 26px; 
+            width: auto;
+            object-fit: contain;
         }
 
         .current-server-badge {
@@ -123,7 +103,7 @@
             top: 100%;
             right: 0;
             width: 320px;
-            background: rgba(20, 20, 20, 0.8);
+            background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid var(--glass-border);
@@ -425,6 +405,40 @@
             color: var(--accent-color);
         }
 
+        /* Стили для переключателя категорий */
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .category-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .category-tab.active {
+            background: rgba(230, 0, 126, 0.2);
+            color: var(--text-main);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(230, 0, 126, 0.2);
+        }
+
+        .category-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
         .form-group {
             margin-bottom: 15px;
             position: relative;
@@ -568,7 +582,7 @@
 
     <header>
         <div class="header-left">
-            <div class="logo">Majestic</div>
+            <img src="media/logo.png" class="logo-img" alt="Majestic Logo">
             <div class="current-server-badge" id="currentServerName">Memphis</div>
         </div>
         
@@ -624,8 +638,14 @@
             <h2 id="modalTitle">Действие</h2>
             <form id="actionForm">
                 
+                <!-- Переключатель категории (АВТО / ОДЕЖДА) -->
+                <div class="category-tabs">
+                    <div class="category-tab active" id="tab-auto" onclick="setCategory('auto')">Авто</div>
+                    <div class="category-tab" id="tab-clothes" onclick="setCategory('clothes')">Одежда</div>
+                </div>
+
                 <div class="form-group">
-                    <label>Название предмета (транспорта)</label>
+                    <label>Название предмета</label>
                     <input type="text" id="carName" required autocomplete="off">
                     <div id="autocomplete-list" class="autocomplete-items"></div>
                 </div>
@@ -635,7 +655,7 @@
                     <input type="number" id="price" required>
                 </div>
                 
-                <div class="checkbox-group">
+                <div class="checkbox-group" id="govCheckboxWrapper">
                     <input type="checkbox" id="useGovPrice" onchange="toggleGovPriceField()">
                     <label for="useGovPrice" style="margin:0; cursor:pointer;">Указать гос. стоимость</label>
                 </div>
@@ -1754,9 +1774,13 @@
             "Armand 406": { gov: 900000, fuel: "Regular", weight: "60 kg", mcoin: "6..." }
         };
 
+                // ВАЖНО: Вставьте сюда ваш массив vehiclesDatabase, он должен быть перед этими строками!
+        // const vehiclesDatabase = { ... }; // <- ОСТАВЬТЕ ВАШ СПИСОК ЗДЕСЬ
+
         let globalState = {};
         let activeServer = "memphis";
         let currentAction = null;
+        let currentCategory = 'auto'; // Глобальная переменная для категории
 
         function loadGlobalState() {
             const saved = localStorage.getItem('majesticTrackerGlobal');
@@ -1830,6 +1854,36 @@
         document.getElementById(`btn-memphis`).classList.add('active-server');
         render();
 
+        // Функция переключения категории
+        function setCategory(category) {
+            currentCategory = category;
+            
+            document.getElementById('tab-auto').classList.remove('active');
+            document.getElementById('tab-clothes').classList.remove('active');
+            
+            const checkboxWrapper = document.getElementById('govCheckboxWrapper');
+            const govPriceGroup = document.getElementById('govPriceGroup');
+            const useGovPrice = document.getElementById('useGovPrice');
+            
+            if (category === 'auto') {
+                document.getElementById('tab-auto').classList.add('active');
+                document.getElementById('carName').placeholder = "Например: BMW M5";
+                
+                // Показываем галочку для авто
+                checkboxWrapper.style.display = 'flex';
+            } else {
+                document.getElementById('tab-clothes').classList.add('active');
+                document.getElementById('carName').placeholder = "Например: Красная куртка";
+                document.getElementById('autocomplete-list').style.display = 'none';
+                
+                // Скрываем галочку и сбрасываем её для одежды
+                checkboxWrapper.style.display = 'none';
+                useGovPrice.checked = false; 
+                govPriceGroup.style.display = 'none';
+                document.getElementById('govPrice').value = '';
+            }
+        }
+        
         function toggleGovPriceField() {
             const checkbox = document.getElementById('useGovPrice');
             const group = document.getElementById('govPriceGroup');
@@ -1843,6 +1897,8 @@
 
         function openModal(action) {
             currentAction = action;
+            setCategory('auto'); // Сбрасываем на "Авто" при открытии
+            
             const modal = document.getElementById('modalOverlay');
             const title = document.getElementById('modalTitle');
             const installmentFields = document.getElementById('installmentFields');
@@ -1890,6 +1946,12 @@
         const autocompleteList = document.getElementById('autocomplete-list');
 
         carNameInput.addEventListener('input', function() {
+            // Если выбрана одежда, подсказки не показываем
+            if (currentCategory === 'clothes') {
+                autocompleteList.style.display = 'none';
+                return;
+            }
+
             const val = this.value.toLowerCase();
             autocompleteList.innerHTML = '';
             
@@ -1911,7 +1973,7 @@
                     const div = document.createElement('div');
                     const regex = new RegExp(`(${val})`, "gi");
                     const data = vehiclesDatabase[match];
-                    const scrapPrice = data.gov / 2; // Автоматический расчет свалки
+                    const scrapPrice = data.gov / 2; 
                     
                     div.innerHTML = `
                         <span>${match.replace(regex, "<strong>$1</strong>")}</span>
@@ -2023,12 +2085,13 @@
                         : `<span class="color-loss">Переплата ${formatMoney(difference)}</span>`;
                 }
 
-                // Получаем доп инфу для таблицы
                 const dbItem = vehiclesDatabase[carName];
                 let infoString = "Нет данных";
-                if (dbItem) {
+                if (dbItem && currentCategory === 'auto') {
                     infoString = `Топливо: ${dbItem.fuel}\nВес: ${dbItem.weight}`;
                     if (dbItem.mcoin) infoString += `\nM-Coins: ${dbItem.mcoin}`;
+                } else if (currentCategory === 'clothes') {
+                    infoString = "Категория: Одежда";
                 }
 
                 const logEntry = {
@@ -2036,6 +2099,7 @@
                     action: currentAction,
                     actionText: actionText,
                     carName: carName,
+                    category: currentCategory, // Сохраняем категорию
                     price: price,
                     marketPrice: marketPrice,
                     govPrice: govPrice,
@@ -2063,13 +2127,13 @@
                 if (log.action === 'sell') actionClass = 'sell-text';
                 if (log.action === 'installment') actionClass = 'installment-text';
 
-                // Формируем иконку инфо
                 const infoTooltip = log.infoString || "Нет данных";
                 const infoHtml = `<div class="info-icon" data-info="${infoTooltip}">i</div>`;
+                const catText = log.category === 'clothes' ? 'Одежда' : 'Авто';
 
                 tr.innerHTML = `
                     <td class="action-type ${actionClass}">${log.actionText}</td>
-                    <td>${log.carName}</td>
+                    <td>${log.carName} <br><small style="color:#aaa">${catText}</small></td>
                     <td>${infoHtml}</td>
                     <td>${formatMoney(log.price)}</td>
                     <td>${formatMoney(log.marketPrice)}</td>
