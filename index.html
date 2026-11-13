@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Majestic Tracker | Glassmorphism</title>
+    <title>Majestic Tracker | Multi-Server</title>
     <style>
         :root {
             --text-main: #ffffff;
@@ -50,6 +50,12 @@
             z-index: 10;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
         .logo {
             font-family: 'Arial Black', Impact, sans-serif;
             font-size: 28px;
@@ -75,18 +81,39 @@
             box-shadow: 0 0 8px var(--accent-color);
         }
 
+        .current-server-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         .burger-menu {
             cursor: pointer;
             display: flex;
             flex-direction: column;
             gap: 5px;
-            padding: 5px;
+            padding: 10px;
+            background: #e6007e;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(230, 0, 126, 0.4);
+            transition: all 0.2s;
+        }
+
+        .burger-menu:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(230, 0, 126, 0.7);
         }
 
         .burger-menu div {
             width: 25px;
             height: 3px;
-            background-color: var(--text-main);
+            background-color: #fff;
             border-radius: 2px;
             transition: 0.3s;
         }
@@ -95,7 +122,7 @@
             position: absolute;
             top: 100%;
             right: 0;
-            width: 300px;
+            width: 320px;
             background: rgba(20, 20, 20, 0.8);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
@@ -107,28 +134,45 @@
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: var(--glass-shadow);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .server-menu.open {
             transform: translateX(0);
         }
 
-        .server-item {
+        .server-btn {
             display: flex;
             align-items: center;
-            padding: 10px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
             cursor: pointer;
             transition: 0.2s;
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--text-main);
+            text-transform: capitalize;
         }
 
-        .server-item:hover {
-            background-color: rgba(255,255,255,0.1);
+        .server-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255,255,255,0.3);
         }
 
-        .server-item img {
-            width: 30px;
-            height: 30px;
+        .server-btn.active-server {
+            background: rgba(192, 38, 211, 0.2);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(230, 0, 126, 0.2);
+        }
+
+        .server-btn img {
+            width: 24px;
+            height: 24px;
             object-fit: cover;
             border-radius: 4px;
             margin-right: 15px;
@@ -244,6 +288,7 @@
         td {
             padding: 15px 12px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
+            vertical-align: middle;
         }
 
         .action-type {
@@ -252,6 +297,40 @@
         .action-type.buy-text { color: var(--danger); }
         .action-type.sell-text { color: var(--success); }
         .action-type.installment-text { color: #eab308; }
+
+        .info-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: bold;
+            cursor: help;
+            position: relative;
+        }
+
+        .info-icon:hover::after {
+            content: attr(data-info);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: pre;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border: 1px solid var(--glass-border);
+            margin-bottom: 5px;
+        }
 
         .right-panel {
             width: 350px;
@@ -348,6 +427,7 @@
 
         .form-group {
             margin-bottom: 15px;
+            position: relative;
         }
 
         .form-group label {
@@ -357,7 +437,8 @@
             font-size: 14px;
         }
 
-        .form-group input {
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
             width: 100%;
             padding: 10px;
             background: rgba(0, 0, 0, 0.4);
@@ -371,6 +452,58 @@
             outline: none;
             border-color: var(--accent-color);
             background: rgba(0, 0, 0, 0.6);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-color);
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid var(--glass-border);
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 6px 6px;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: white;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: rgba(230, 0, 126, 0.3);
+        }
+
+        .ac-price {
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
         .modal-buttons {
@@ -400,7 +533,6 @@
         .color-profit { color: var(--success); font-weight: bold; }
         .color-loss { color: var(--danger); font-weight: bold; }
 
-        /* Стили для всплывающего уведомления */
         .notification {
             display: none;
             margin-top: 15px;
@@ -430,25 +562,26 @@
             85% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-10px); }
         }
-        
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">Majestic</div>
+        <div class="header-left">
+            <div class="logo">Majestic</div>
+            <div class="current-server-badge" id="currentServerName">Memphis</div>
+        </div>
+        
         <div class="burger-menu" id="burgerMenu">
             <div></div>
             <div></div>
             <div></div>
         </div>
 
-        <div class="server-menu" id="serverMenu">
-        </div>
+        <div class="server-menu" id="serverMenu"></div>
     </header>
 
     <div class="layout">
-        
         <div class="main-content">
             <div class="finance-panel">
                 <div class="finance-item buy" id="finBuy">Купил: 0</div>
@@ -465,13 +598,14 @@
                         <tr>
                             <th>Действие</th>
                             <th>Предмет</th>
+                            <th>Инфо</th>
                             <th>Цена</th>
                             <th>Средний рынок</th>
+                            <th>Гос. стоимость</th>
                             <th>Разница / Детали</th>
                         </tr>
                     </thead>
-                    <tbody id="logTableBody">
-                    </tbody>
+                    <tbody id="logTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -481,43 +615,57 @@
             <button class="btn" onclick="openModal('buy')">Купил</button>
             <button class="btn" onclick="openModal('sell')">Продал</button>
             <button class="btn" onclick="openModal('installment')">Рассрочка</button>
-            <button class="btn btn-reset" onclick="resetAll()">Сбросить всё</button>
+            <button class="btn btn-reset" onclick="resetAll()">Сбросить сервер</button>
         </div>
-
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <h2 id="modalTitle">Действие</h2>
             <form id="actionForm">
+                
                 <div class="form-group">
-                    <label>Название предмета</label>
-                    <input type="text" id="carName" required>
+                    <label>Название предмета (транспорта)</label>
+                    <input type="text" id="carName" required autocomplete="off">
+                    <div id="autocomplete-list" class="autocomplete-items"></div>
                 </div>
+
                 <div class="form-group">
                     <label>Цена покупки/продажи</label>
                     <input type="number" id="price" required>
                 </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="useGovPrice" onchange="toggleGovPriceField()">
+                    <label for="useGovPrice" style="margin:0; cursor:pointer;">Указать гос. стоимость</label>
+                </div>
+
+                <div class="form-group" id="govPriceGroup" style="display: none;">
+                    <label>Гос. стоимость</label>
+                    <input type="number" id="govPrice">
+                </div>
+
                 <div class="form-group">
                     <label>Средний рынок</label>
                     <input type="number" id="marketPrice" required>
                 </div>
+                
                 <div id="installmentFields" style="display: none;">
                     <div class="form-group">
                         <label>У кого купил</label>
-                        <input type="text" id="sellerName">  
+                        <input type="text" id="sellerName">
                     </div>
                     <div class="form-group">
                         <label>Сумма платежа (в день/неделю)</label>
                         <input type="number" id="paymentAmount">
                     </div>
                 </div>
+
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-cancel" onclick="closeModal()">Отмена</button>
                     <button type="submit" class="btn btn-submit" id="submitBtn">Подтвердить</button>
                 </div>
                 
-                <!-- Блок для всплывающего уведомления -->
                 <div id="notification" class="notification"></div>
             </form>
         </div>
@@ -531,43 +679,1110 @@
             "dallas", "houston", "seattle", "denver"
         ];
 
-        const serverMenu = document.getElementById('serverMenu');
-        servers.forEach((server, index) => {
-            const div = document.createElement('div');
-            div.className = 'server-item';
-            div.innerHTML = `
-                <img src="media/${index + 1}.png" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'30\\' height=\\'30\\'><rect width=\\'30\\' height=\\'30\\' fill=\\'%23333\\'/></svg>'">
-                <span>${server.charAt(0).toUpperCase() + server.slice(1)}</span>
-            `;
-            serverMenu.appendChild(div);
-        });
-
-        document.getElementById('burgerMenu').addEventListener('click', () => {
-            serverMenu.classList.toggle('open');
-        });
-
-        let state = {
-            logs: [],
-            totalBuy: 0,
-            totalSell: 0,
-            marketDatabase: {}
+        // Вся база транспорта (названия, гос стоимость, тип топлива, вес, м-коины)
+        // Формат: "Название": { gov: цена, fuel: "тип", weight: "вес", mcoin: "сумма" }
+        const vehiclesDatabase = {
+            "Nagasaki Dinghy MK4": { gov: 1000000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Nagasaki Dinghy MK2": { gov: 600000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Shitzu Jetmax": { gov: 7000000, fuel: "Plus", weight: "300 kg", mcoin: null },
+            "Dinka Marquis": { gov: 25000000, fuel: "Diesel", weight: "800 kg", mcoin: null },
+            "Speedophile Seashark": { gov: 300000, fuel: "Regular", weight: "25 kg", mcoin: null },
+            "Speedophile Seashark Astro": { gov: 400000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Pegassi Speeder": { gov: 8500000, fuel: "Plus", weight: "350 kg", mcoin: null },
+            "Pegassi Speeder RT": { gov: 9000000, fuel: "Plus", weight: "375 kg", mcoin: null },
+            "Shitzu Squalo": { gov: 4000000, fuel: "Plus", weight: "200 kg", mcoin: null },
+            "Kraken Submersible PS-1021": { gov: 30000000, fuel: "Diesel", weight: "1000 kg", mcoin: null },
+            "Kraken Poseidon": { gov: 35000000, fuel: "Diesel", weight: "1200 kg", mcoin: null },
+            "Shitzu Suntrap": { gov: 2500000, fuel: "Regular", weight: "175 kg", mcoin: null },
+            "Lampadati Toro": { gov: 10000000, fuel: "Plus", weight: "400 kg", mcoin: null },
+            "Lampadati Toro GT": { gov: 10500000, fuel: "Plus", weight: "425 kg", mcoin: null },
+            "Shitzu Tropic": { gov: 5000000, fuel: "Plus", weight: "250 kg", mcoin: null },
+            "Shitzu Tropic SW": { gov: 5500000, fuel: "Plus", weight: "275 kg", mcoin: null },
+            "Buckingham Tug": { gov: 15000000, fuel: "Diesel", weight: "1000 kg", mcoin: null },
+            "Shitzu Longfin": { gov: 20000000, fuel: "Plus", weight: "400 kg", mcoin: null },
+            "Kraken Avisa": { gov: 40000000, fuel: "Diesel", weight: "1400 kg", mcoin: null },
+            "Vapid Benson": { gov: 800000, fuel: "Diesel", weight: "210 kg", mcoin: null },
+            "JoBuilt Hauler": { gov: 2660000, fuel: "Diesel", weight: "17 t", mcoin: null },
+            "Maibatsu Mule": { gov: 930000, fuel: "Diesel", weight: "175 kg", mcoin: null },
+            "MTL Packer": { gov: 3320000, fuel: "Diesel", weight: "17.5 t", mcoin: null },
+            "JoBuilt Phantom": { gov: 4000000, fuel: "Diesel", weight: "19.5 t", mcoin: null },
+            "MTL Pounder": { gov: 700000, fuel: "Diesel", weight: "220 kg", mcoin: null },
+            "Maxwell Asbo": { gov: 79000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Dinka Blista": { gov: 111000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Grotti Brioso R/A": { gov: 110000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Karin Dilettante": { gov: 78000, fuel: "Electro", weight: "40 kg", mcoin: null },
+            "Weeny Issi": { gov: 108000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Weeny Issi Classic": { gov: 60000, fuel: "Diesel", weight: "20 kg", mcoin: null },
+            "Weeny Issi Apocalypse": { gov: 148000, fuel: "Diesel", weight: "34 kg", mcoin: null },
+            "Weeny Issi Fiction": { gov: 148000, fuel: "Diesel", weight: "34 kg", mcoin: null },
+            "Dinka Blista Kanjo": { gov: 130000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Benefactor Panto": { gov: 99000, fuel: "Regular", weight: "20 kg", mcoin: null },
+            "Bollokan Prairie": { gov: 93000, fuel: "Plus", weight: "35 kg", mcoin: null },
+            "Declasse Rhapsody": { gov: 92000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "BF Club": { gov: 140000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Grotti Brioso 300": { gov: 63000, fuel: "Regular", weight: "25 kg", mcoin: null },
+            "Dinka Veto Classic": { gov: 32000, fuel: "Regular", weight: "0", mcoin: null },
+            "Dinka Veto Modern": { gov: 47000, fuel: "Regular", weight: "0", mcoin: null },
+            "BF Weevil": { gov: 94000, fuel: "Regular", weight: "30 kg", mcoin: null },
+            "Grotti Brioso 300 Widebody": { gov: 92000, fuel: "Regular", weight: "25 kg", mcoin: null },
+            "Enus Cognoscenti Cabrio": { gov: 171000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Dewbauchee Exemplar": { gov: 185000, fuel: "Plus", weight: "40 kg", mcoin: null },
+            "Ocelot F620": { gov: 192000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Lampadati Felon": { gov: 192000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Lampadati Felon GT": { gov: 161000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Ocelot Jackal": { gov: 183000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Ubermacht Oracle XS": { gov: 193000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Ubermacht Oracle": { gov: 202000, fuel: "Plus", weight: "75 kg", mcoin: null },
+            "Ubermacht Sentinel XS": { gov: 128000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Ubermacht Sentinel": { gov: 155000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Enus Windsor": { gov: 222000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Enus Windsor Drop": { gov: 210000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Ubermacht Zion": { gov: 169000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Ubermacht Zion Cabrio": { gov: 172000, fuel: "Regular", weight: "55 kg", mcoin: null },
+            "Karin Previon": { gov: 193000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Dinka Kanjo SJ": { gov: 134000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Dinka Postlude": { gov: 112000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "PED Cycles BMX": { gov: 2000, fuel: "mechanical", weight: "0", mcoin: null },
+            "PED Cycles Cruiser": { gov: 2000, fuel: "mechanical", weight: "0", mcoin: null },
+            "R-Bike Fixter": { gov: 4000, fuel: "mechanical", weight: "0", mcoin: null },
+            "PED Cycles Scorcher": { gov: 6000, fuel: "mechanical", weight: "0", mcoin: null },
+            "R-Bike Whippet": { gov: 9000, fuel: "mechanical", weight: "0", mcoin: null },
+            "R-Bike Endurex": { gov: 9000, fuel: "mechanical", weight: "0", mcoin: null },
+            "R-Bike Tri-Cycles": { gov: 9000, fuel: "mechanical", weight: "0", mcoin: null },
+            "Coil Inductor": { gov: 80000, fuel: "mechanical", weight: "0", mcoin: null },
+            "Nagasaki Buzzard": { gov: 100000000, fuel: "Regular", weight: "150 kg", mcoin: null },
+            "Maibatsu Frogger": { gov: 80000000, fuel: "Regular", weight: "200 kg", mcoin: null },
+            "Buckingham Maverick": { gov: 50000000, fuel: "Regular", weight: "175 kg", mcoin: null },
+            "Buckingham SuperVolito": { gov: 140000000, fuel: "Regular", weight: "300 kg", mcoin: null },
+            "Buckingham SuperVolito Carbon": { gov: 160000000, fuel: "Regular", weight: "300 kg", mcoin: null },
+            "Buckingham Swift": { gov: 200000000, fuel: "Regular", weight: "450 kg", mcoin: null },
+            "Buckingham Swift Deluxe": { gov: 240000000, fuel: "Regular", weight: "450 kg", mcoin: null },
+            "Buckingham Volatus": { gov: 300000000, fuel: "Regular", weight: "400 kg", mcoin: null },
+            "HVY Sparrow": { gov: 80000000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Vapid Guardian": { gov: 1500000, fuel: "Diesel", weight: "2000 kg", mcoin: null },
+            "Dinka Akuma": { gov: 188000, fuel: "Regular", weight: "0", mcoin: null },
+            "LCC Avarus": { gov: 118000, fuel: "Regular", weight: "0", mcoin: null },
+            "Western Bagger": { gov: 13000, fuel: "Regular", weight: "0", mcoin: null },
+            "Pegassi Bati 801": { gov: 171000, fuel: "Plus", weight: "0", mcoin: null },
+            "Pegassi Bati 801RR": { gov: 174000, fuel: "Plus", weight: "10 kg", mcoin: null },
+            "Nagasaki BF400": { gov: 112000, fuel: "Regular", weight: "0", mcoin: null },
+            "Nagasaki Carbon RS": { gov: 114000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Nagasaki Chimera": { gov: 41000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Western Cliffhanger": { gov: 141000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Western Daemon": { gov: 49000, fuel: "Regular", weight: "0", mcoin: null },
+            "Western Daemon2": { gov: 47000, fuel: "Regular", weight: "0", mcoin: null },
+            "Shitzu Defiler": { gov: 139000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Western Deathbike Apocalypse": { gov: 162000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Western Deathbike Fiction": { gov: 162000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Principe Diabolus": { gov: 111000, fuel: "Plus", weight: "10 kg", mcoin: null },
+            "Dinka Double-T": { gov: 136000, fuel: "Plus", weight: "0", mcoin: null },
+            "Dinka Enduro": { gov: 28000, fuel: "Regular", weight: "0", mcoin: null },
+            "Pegassi Esskey": { gov: 137000, fuel: "Regular", weight: "0", mcoin: null },
+            "Pegassi Faggio Sport": { gov: 10000, fuel: "Regular", weight: "0", mcoin: null },
+            "Pegassi Faggio": { gov: 8000, fuel: "Regular", weight: "0", mcoin: null },
+            "Pegassi FCR 1000": { gov: 101000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Pegassi FCR 1000 Custom": { gov: 105000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Western Gargoyle": { gov: 144000, fuel: "Regular", weight: "0", mcoin: null },
+            "Shitzu Hakuchou": { gov: 172000, fuel: "Premium", weight: "0", mcoin: null },
+            "LCC Hexer": { gov: 41000, fuel: "Regular", weight: "0", mcoin: null },
+            "LCC Innovation": { gov: 82000, fuel: "Regular", weight: "0", mcoin: null },
+            "Principe Lectro": { gov: 84000, fuel: "Regular", weight: "0", mcoin: null },
+            "Maibatsu Manchez": { gov: 112000, fuel: "Regular", weight: "0", mcoin: null },
+            "Maibatsu Manchez Scout": { gov: 41000, fuel: "Regular", weight: "0", mcoin: null },
+            "Principe Nemesis": { gov: 96000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Western Nightblade": { gov: 108000, fuel: "Premium", weight: "0", mcoin: null },
+            "Shitzu PCJ 600": { gov: 37000, fuel: "Regular", weight: "0", mcoin: null },
+            "Pegassi Ruffian": { gov: 122000, fuel: "Regular", weight: "0", mcoin: null },
+            "Western Rampant Rocket": { gov: 76000, fuel: "Regular", weight: "5 kg", mcoin: null },
+            "Maibatsu Sanchez": { gov: 115000, fuel: "Regular", weight: "0", mcoin: null },
+            "LCC Sanctus": { gov: 173000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Western Sovereign": { gov: 42000, fuel: "Regular", weight: "0", mcoin: null },
+            "Nagasaki Stryder": { gov: 85000, fuel: "Regular", weight: "0", mcoin: null },
+            "Dinka Thrust": { gov: 174000, fuel: "Plus", weight: "10 kg", mcoin: null },
+            "Shitzu Vader": { gov: 69000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Dinka Vindicator": { gov: 166000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Pegassi Vortex": { gov: 169000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Western Wolfsbane": { gov: 15000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Western Zombie Bobber": { gov: 46000, fuel: "Regular", weight: "0", mcoin: null },
+            "Western Zombie Chopper": { gov: 57000, fuel: "Regular", weight: "0", mcoin: null },
+            "Maibatsu Manchez Scout C": { gov: 39000, fuel: "Regular", weight: "0", mcoin: null },
+            "Western Powersurge": { gov: 240000, fuel: "Electro", weight: "10 kg", mcoin: null },
+            "Vapid Blade": { gov: 114000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Albany Buccaneer": { gov: 125000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Albany Buccaneer Custom": { gov: 124000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Vapid Chino": { gov: 47000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Vapid Chino Custom": { gov: 47000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Vapid Clique": { gov: 156000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Invetero Coquette BlackFin": { gov: 134000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Schyster Deviant": { gov: 107000, fuel: "Premium", weight: "55 kg", mcoin: null },
+            "Vapid Dominator": { gov: 207000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Vapid Pisswasser Dominator": { gov: 221000, fuel: "Premium", weight: "45 kg", mcoin: null },
+            "Vapid Dominator GTX": { gov: 121000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Vapid Dominator Apocalypse": { gov: 195000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Vapid Dominator Fiction": { gov: 173000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Vapid Dominator Nightmare": { gov: 195000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Imponte Dukes": { gov: 129000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Imponte Duke O Death": { gov: 165000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Imponte Beater Dukes": { gov: 86000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Willard Faction": { gov: 119000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Willard Faction Custom": { gov: 125000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Willard Faction Custom Donk": { gov: 66000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Vapid Ellie": { gov: 104000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Bravado Gauntlet": { gov: 149000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Bravado Redwood Gauntlet": { gov: 163000, fuel: "Premium", weight: "60 kg", mcoin: null },
+            "Bravado Gauntlet Classic": { gov: 107000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Bravado Gauntlet Hellfire": { gov: 250000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Bravado Gauntlet Classic Custom": { gov: 215000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Albany Hermes": { gov: 142000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Vapid Hotknife": { gov: 109000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Vapid Hustler": { gov: 188000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Declasse Impaler": { gov: 148000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Declasse Impaler Apocalypse": { gov: 169000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Declasse Impaler Fiction": { gov: 181000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Declasse Impaler Nightmare": { gov: 181000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Vapid Imperator Apocalypse": { gov: 196000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Vapid Imperator Fiction": { gov: 196000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Vapid Imperator Nightmare": { gov: 196000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Albany Lurcher": { gov: 144000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Declasse Moonbeam": { gov: 95000, fuel: "Plus", weight: "73 kg", mcoin: null },
+            "Declasse Moonbeam Custom": { gov: 85000, fuel: "Premium", weight: "40 kg", mcoin: null },
+            "Imponte Nightshade": { gov: 81000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Vapid Peyote Gasser": { gov: 181000, fuel: "Regular", weight: "55 kg", mcoin: null },
+            "Imponte Phoenix": { gov: 125000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Cheval Picador": { gov: 69000, fuel: "Plus", weight: "70 kg", mcoin: null },
+            "Bravado Rat-Loader": { gov: 24000, fuel: "Plus", weight: "10 kg", mcoin: null },
+            "Bravado Rat-Truck": { gov: 79000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Imponte Ruiner": { gov: 192000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Imponte Ruiner 2000": { gov: 194000, fuel: "Premium", weight: "55 kg", mcoin: null },
+            "Declasse Sabre Turbo": { gov: 120000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Declasse Sabre Turbo Custom": { gov: 202000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Vapid Slamvan": { gov: 109000, fuel: "Plus", weight: "80 kg", mcoin: null },
+            "Vapid Lost Slamvan": { gov: 116000, fuel: "Plus", weight: "80 kg", mcoin: null },
+            "Vapid Slamvan Custom": { gov: 112000, fuel: "Plus", weight: "75 kg", mcoin: null },
+            "Vapid Slamvan Apocalypse": { gov: 107000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Vapid Slamvan Fiction": { gov: 107000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Declasse Stallion": { gov: 119000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Declasse Burger Shot Stallion": { gov: 124000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Declasse Tampa": { gov: 98000, fuel: "Plus", weight: "70 kg", mcoin: null },
+            "Declasse Weaponized Tampa": { gov: 148000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Declasse Tulip": { gov: 146000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Declasse Vamos": { gov: 132000, fuel: "Premium", weight: "75 kg", mcoin: null },
+            "Declasse Vigero": { gov: 125000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Albany Virgo": { gov: 60000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Dundreary Virgo Classic Custom": { gov: 82000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Dundreary Virgo Classic": { gov: 54000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Declasse Voodoo Custom": { gov: 61000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Declasse Voodoo": { gov: 25000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Declasse Yosemite": { gov: 149000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Declasse Drift Yosemite": { gov: 108000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Vapid Dominator ASP": { gov: 210000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Vapid Dominator GT": { gov: 146000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Bravado Greenwood": { gov: 191000, fuel: "Regular", weight: "70 kg", mcoin: null },
+            "Imponte Ruiner ZZ-8": { gov: 164000, fuel: "Regular", weight: "70 kg", mcoin: null },
+            "Declasse Vigero ZX": { gov: 164000, fuel: "Plus", weight: "70 kg", mcoin: null },
+            "BF Weevil Custom": { gov: 311000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Declasse Tahoman Coupe": { gov: 135000, fuel: "Regular", weight: "55 kg", mcoin: null },
+            "Declasse Tulip M-100": { gov: 171000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Classique Broadway": { gov: 68000, fuel: "Regular", weight: "70 kg", mcoin: null },
+            "Willard Eudora": { gov: 98000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Albany Brigham": { gov: 103000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Bravado Buffalo EVX": { gov: 161000, fuel: "Electro", weight: "60 kg", mcoin: null },
+            "Vapid Clique Wagon": { gov: 52000, fuel: "Regular", weight: "90 kg", mcoin: null },
+            "BF Injection": { gov: 57000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "BF Bifta": { gov: 108000, fuel: "Regular", weight: "20 kg", mcoin: null },
+            "Nagasaki Blazer": { gov: 32000, fuel: "Regular", weight: "0", mcoin: null },
+            "Nagasaki Hot Rod Blazer": { gov: 30000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Nagasaki Street Blazer": { gov: 56000, fuel: "Regular", weight: "0", mcoin: null },
+            "Nagasaki Blazer Aqua": { gov: 50000, fuel: "Regular", weight: "0", mcoin: null },
+            "Dinka Verus": { gov: 32000, fuel: "Regular", weight: "0", mcoin: null },
+            "Canis Bodhi": { gov: 37000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "Coil Brawler": { gov: 189000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Benefactor Bruiser Fiction": { gov: 118000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Benefactor Bruiser Nightmare": { gov: 124000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Declasse Brutus Apocalypse": { gov: 152000, fuel: "Diesel", weight: "110 kg", mcoin: null },
+            "Declasse Brutus Fiction": { gov: 152000, fuel: "Diesel", weight: "110 kg", mcoin: null },
+            "Declasse Brutus Nightmare": { gov: 152000, fuel: "Diesel", weight: "110 kg", mcoin: null },
+            "Vapid Caracara": { gov: 113000, fuel: "Diesel", weight: "50 kg", mcoin: null },
+            "Vapid Caracara 4x4": { gov: 136000, fuel: "Diesel", weight: "95 kg", mcoin: null },
+            "Benefactor Dubsta 6x6": { gov: 171000, fuel: "Premium", weight: "150 kg", mcoin: null },
+            "BF Dune Buggy": { gov: 40000, fuel: "Regular", weight: "0", mcoin: null },
+            "BF Dune UFO": { gov: 37000, fuel: "Regular", weight: "0", mcoin: null },
+            "BF Dune FAV": { gov: 70000, fuel: "Regular", weight: "0", mcoin: null },
+            "Karin Everon": { gov: 166000, fuel: "Diesel", weight: "95 kg", mcoin: null },
+            "Canis Freecrawler": { gov: 110000, fuel: "Regular", weight: "70 kg", mcoin: null },
+            "Annis Hellion": { gov: 116000, fuel: "Diesel", weight: "90 kg", mcoin: null },
+            "HVY Insurgent Pick-Up": { gov: 254000, fuel: "Regular", weight: "500 kg", mcoin: null },
+            "HVY Insurgent": { gov: 247000, fuel: "Regular", weight: "500 kg", mcoin: null },
+            "HVY Insurgent Pick-Up Custom": { gov: 254000, fuel: "Regular", weight: "500 kg", mcoin: null },
+            "Canis Kalahari": { gov: 71000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Canis Kamacho": { gov: 222000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Canis Mesa": { gov: 167000, fuel: "Regular", weight: "300 kg", mcoin: null },
+            "Bravado Sasquatch Apocalypse": { gov: 122000, fuel: "Regular", weight: "0", mcoin: null },
+            "Bravado Sasquatch Fiction": { gov: 122000, fuel: "Regular", weight: "0", mcoin: null },
+            "Bravado Sasquatch Nightmare": { gov: 122000, fuel: "Regular", weight: "0", mcoin: null },
+            "HVY Menacer": { gov: 180000, fuel: "Regular", weight: "400 kg", mcoin: null },
+            "HVY Nightshark": { gov: 199000, fuel: "Regular", weight: "275 kg", mcoin: null },
+            "Nagasaki Outlaw": { gov: 108000, fuel: "Regular", weight: "20 kg", mcoin: null },
+            "Declasse Rancher XL": { gov: 80000, fuel: "Regular", weight: "85 kg", mcoin: null },
+            "Karin Rusty Rebel": { gov: 38000, fuel: "Regular", weight: "85 kg", mcoin: null },
+            "Karin Rebel": { gov: 74000, fuel: "Regular", weight: "85 kg", mcoin: null },
+            "RC Bandito": { gov: 200002, fuel: "Electro", weight: "0", mcoin: null },
+            "Vapid Riata": { gov: 110000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "Vapid Sandking XL": { gov: 104000, fuel: "Regular", weight: "102 kg", mcoin: null },
+            "Vapid Sandking SWB": { gov: 91000, fuel: "Regular", weight: "98 kg", mcoin: null },
+            "Karin Technical Aqua": { gov: 26000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Vapid Trophy Truck": { gov: 131000, fuel: "Regular", weight: "0", mcoin: null },
+            "Vapid Desert Raid": { gov: 131000, fuel: "Regular", weight: "0", mcoin: null },
+            "Maxwell Vagrant": { gov: 227000, fuel: "Regular", weight: "20 kg", mcoin: null },
+            "RUNE Zhaba": { gov: 125000, fuel: "Regular", weight: "400 kg", mcoin: null },
+            "Declasse Yosemite Rancher": { gov: 116000, fuel: "Plus", weight: "75 kg", mcoin: null },
+            "Declasse Draugur": { gov: 219000, fuel: "Premium", weight: "120 kg", mcoin: null },
+            "Karin Boor": { gov: 159000, fuel: "Diesel", weight: "90 kg", mcoin: null },
+            "Declasse Walton L35": { gov: 132000, fuel: "Regular", weight: "110 kg", mcoin: null },
+            "Maibatsu MonstroCiti": { gov: 125000, fuel: "Diesel", weight: "105 kg", mcoin: null },
+            "Vapid Ratel": { gov: 176000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Progen PR4": { gov: 318000, fuel: "Premium", weight: "0", mcoin: null },
+            "Ocelot R88": { gov: 310000, fuel: "Premium", weight: "0", mcoin: null },
+            "Benefactor BR8": { gov: 322000, fuel: "Premium", weight: "0", mcoin: null },
+            "Declasse DR1": { gov: 302000, fuel: "Premium", weight: "0", mcoin: null },
+            "Buckingham Luxor Deluxe": { gov: 6300000, fuel: "Regular", weight: "1800 kg", mcoin: null },
+            "Gallivanter Baller": { gov: 116000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Gallivanter Baller LE": { gov: 160000, fuel: "Plus", weight: "80 kg", mcoin: null },
+            "Gallivanter Baller LE LWB": { gov: 158000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Gallivanter Baller LE (Armored)": { gov: 154000, fuel: "Diesel", weight: "70 kg", mcoin: null },
+            "Gallivanter Baller LE LWB (Armored)": { gov: 147000, fuel: "Diesel", weight: "70 kg", mcoin: null },
+            "Karin BeeJay XL": { gov: 95000, fuel: "Diesel", weight: "65 kg", mcoin: null },
+            "Albany Cavalcade": { gov: 103000, fuel: "Regular", weight: "85 kg", mcoin: null },
+            "Albany Cavalcade2": { gov: 103000, fuel: "Plus", weight: "80 kg", mcoin: null },
+            "Vapid Contender": { gov: 158000, fuel: "Diesel", weight: "95 kg", mcoin: null },
+            "Benefactor Dubsta": { gov: 121000, fuel: "Diesel", weight: "95 kg", mcoin: null },
+            "Benefactor Dubsta2": { gov: 123000, fuel: "Premium", weight: "100 kg", mcoin: null },
+            "Fathom FQ 2": { gov: 120000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Declasse Granger": { gov: 155000, fuel: "Diesel", weight: "110 kg", mcoin: null },
+            "Bravado Gresley": { gov: 112000, fuel: "Plus", weight: "80 kg", mcoin: null },
+            "Emperor Habanero": { gov: 116000, fuel: "Diesel", weight: "55 kg", mcoin: null },
+            "Enus Huntley S": { gov: 166000, fuel: "Diesel", weight: "75 kg", mcoin: null },
+            "Dundreary Landstalker": { gov: 104000, fuel: "Regular", weight: "95 kg", mcoin: null },
+            "Lampadati Novak": { gov: 269000, fuel: "Premium", weight: "60 kg", mcoin: null },
+            "Mammoth Patriot": { gov: 109000, fuel: "Diesel", weight: "100 kg", mcoin: null },
+            "Mammoth Patriot Stretch": { gov: 109000, fuel: "Diesel", weight: "90 kg", mcoin: null },
+            "Vapid Radius": { gov: 115000, fuel: "Diesel", weight: "55 kg", mcoin: null },
+            "Ubermacht Rebla GTS": { gov: 281000, fuel: "Diesel", weight: "110 kg", mcoin: null },
+            "Obey Rocoto": { gov: 137000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Canis Seminole": { gov: 94000, fuel: "Diesel", weight: "70 kg", mcoin: null },
+            "Canis Seminole Frontier": { gov: 108000, fuel: "Diesel", weight: "80 kg", mcoin: null },
+            "Benefactor Serrano": { gov: 110000, fuel: "Diesel", weight: "60 kg", mcoin: null },
+            "Pegassi Toros": { gov: 302000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Benefactor XLS": { gov: 145000, fuel: "Premium", weight: "90 kg", mcoin: null },
+            "Benefactor XLS (Armored)": { gov: 157000, fuel: "Diesel", weight: "75 kg", mcoin: null },
+            "Dundreary Landstalker XL": { gov: 116000, fuel: "Premium", weight: "100 kg", mcoin: null },
+            "Weeny Issi Rally": { gov: 165000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Declasse Asea": { gov: 116000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Karin Asterope": { gov: 123000, fuel: "Regular", weight: "55 kg", mcoin: null },
+            "Enus Cognoscenti 55": { gov: 188000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Enus Cognoscenti 55 (Armored)": { gov: 187000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Enus Cognoscenti": { gov: 176000, fuel: "Premium", weight: "85 kg", mcoin: null },
+            "Enus Cognoscenti (Armored)": { gov: 173000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Albany Emperor": { gov: 58000, fuel: "Regular", weight: "120 kg", mcoin: null },
+            "Albany Emperor2": { gov: 34000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Cheval Fugitive": { gov: 131000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Benefactor Glendale": { gov: 131000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Benefactor Glendale Custom": { gov: 148000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Vulcar Ingot": { gov: 79000, fuel: "Regular", weight: "70 kg", mcoin: null },
+            "Karin Intruder": { gov: 129000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Benefactor Turreted Limo": { gov: 115000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Declasse Premier": { gov: 117000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Albany Primo": { gov: 116000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Albany Primo Custom": { gov: 113000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Dundreary Regina": { gov: 67000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "Albany Romero Hearse": { gov: 49000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Benefactor Schafter": { gov: 156000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Benefactor Schafter V12 (Armored)": { gov: 269000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Benefactor Schafter LWB (Armored)": { gov: 145000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Enus Stafford": { gov: 98000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Vapid Stanier": { gov: 124000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Zirconium Stratum": { gov: 116000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Dundreary Stretch": { gov: 119000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Enus Super Diamond": { gov: 180000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Cheval Surge": { gov: 86000, fuel: "Electro", weight: "50 kg", mcoin: null },
+            "Obey Tailgater": { gov: 125000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Vulcar Warrener": { gov: 112000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Albany Washington": { gov: 139000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Obey Tailgater S": { gov: 210000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Vulcar Warrener HKR": { gov: 121000, fuel: "Regular", weight: "55 kg", mcoin: null },
+            "Ubermacht Rhinehart": { gov: 250000, fuel: "Premium", weight: "90 kg", mcoin: null },
+            "JoBuilt Trashmaster": { gov: 62000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Albany Alpha": { gov: 236000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Bravado Banshee": { gov: 155000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Grotti Bestia GTS": { gov: 276000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Dinka Blista Compact": { gov: 112000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Dinka Go Go Monkey Blista": { gov: 110000, fuel: "Plus", weight: "25 kg", mcoin: null },
+            "Bravado Buffalo": { gov: 176000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Bravado Buffalo S": { gov: 190000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Bravado Sprunk Buffalo": { gov: 210000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Grotti Carbonizzare": { gov: 282000, fuel: "Premium", weight: "45 kg", mcoin: null },
+            "Pfister Comet": { gov: 245000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Pfister Comet Retro Custom": { gov: 243000, fuel: "Plus", weight: "25 kg", mcoin: null },
+            "Pfister Comet Safari": { gov: 236000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Pfister Comet SR": { gov: 256000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Invetero Coquette": { gov: 248000, fuel: "Plus", weight: "40 kg", mcoin: null },
+            "Principe Deveste Eight": { gov: 297000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Annis Elegy Retro Custom": { gov: 207000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Annis Elegy RH8": { gov: 234000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Benefactor Feltzer": { gov: 244000, fuel: "Premium", weight: "40 kg", mcoin: null },
+            "Vapid Flash GT": { gov: 222000, fuel: "Plus", weight: "0", mcoin: null },
+            "Lampadati Furore GT": { gov: 256000, fuel: "Plus", weight: "20 kg", mcoin: null },
+            "Schyster Fusilade": { gov: 221000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Karin Futo": { gov: 208000, fuel: "Regular", weight: "30 kg", mcoin: null },
+            "Vapid GB200": { gov: 190000, fuel: "Plus", weight: "0", mcoin: null },
+            "Declasse Hotring Sabre": { gov: 227000, fuel: "Plus", weight: "0", mcoin: null },
+            "Overflod Imorgon": { gov: 256000, fuel: "Electro", weight: "50 kg", mcoin: null },
+            "Weeny Issi Sport": { gov: 190000, fuel: "Plus", weight: "0", mcoin: null },
+            "Grotti Itali GTO": { gov: 331000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Ocelot Jugular": { gov: 345000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Dinka Jester": { gov: 236000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Dinka Jester (Racecar)": { gov: 252000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Dinka Jester Classic": { gov: 260000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Hijak Khamelion": { gov: 146000, fuel: "Electro", weight: "45 kg", mcoin: null },
+            "Lampadati Komoda": { gov: 299000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Karin Kuruma": { gov: 194000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Ocelot Locust": { gov: 257000, fuel: "Premium", weight: "0", mcoin: null },
+            "Ocelot Lynx": { gov: 259000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Dewbauchee Massacro": { gov: 281000, fuel: "Plus", weight: "40 kg", mcoin: null },
+            "Dewbauchee Massacro (Racecar)": { gov: 281000, fuel: "Plus", weight: "40 kg", mcoin: null },
+            "Vysser Neo": { gov: 316000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Pfister Neon": { gov: 299000, fuel: "Electro", weight: "55 kg", mcoin: null },
+            "Obey 9F": { gov: 251000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Obey 9F Cabrio": { gov: 244000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Obey Omnis": { gov: 173000, fuel: "Plus", weight: "0", mcoin: null },
+            "Enus Paragon R": { gov: 244000, fuel: "Premium", weight: "45 kg", mcoin: null },
+            "Enus Paragon R Armored": { gov: 239000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Ocelot Pariah": { gov: 334000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Maibatsu Penumbra": { gov: 133000, fuel: "Plus", weight: "40 kg", mcoin: null },
+            "Coil Raiden": { gov: 290000, fuel: "Electro", weight: "65 kg", mcoin: null },
+            "Dewbauchee Rapid GT": { gov: 257000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Dewbauchee Rapid GT Cabrio": { gov: 257000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "BF Raptor": { gov: 119000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Ubermacht Revolter": { gov: 243000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Hijak Ruston": { gov: 199000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Benefactor Schafter V12": { gov: 289000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Benefactor Schafter LWB": { gov: 176000, fuel: "Premium", weight: "75 kg", mcoin: null },
+            "Benefactor Schlagen GT": { gov: 301000, fuel: "Premium", weight: "60 kg", mcoin: null },
+            "Benefactor Schwartzer": { gov: 196000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Ubermacht Sentinel Classic": { gov: 178000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Dewbauchee Seven-70": { gov: 271000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Dewbauchee Specter": { gov: 246000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Dewbauchee Specter Custom": { gov: 256000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Benefactor Streiter": { gov: 176000, fuel: "Plus", weight: "70 kg", mcoin: null },
+            "Dinka Sugoi": { gov: 244000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Karin Sultan": { gov: 216000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Karin Sultan Classic": { gov: 247000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Benefactor Surano": { gov: 263000, fuel: "Premium", weight: "60 kg", mcoin: null },
+            "Declasse Drift Tampa": { gov: 176000, fuel: "Plus", weight: "20 kg", mcoin: null },
+            "Lampadati Tropos Rallye": { gov: 183000, fuel: "Premium", weight: "0", mcoin: null },
+            "Bravado Verlierer": { gov: 248000, fuel: "Plus", weight: "20 kg", mcoin: null },
+            "Albany V-STR": { gov: 312000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Obey 8F Drafter": { gov: 241000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Invetero Coquette D10": { gov: 291000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Maibatsu Penumbra FF": { gov: 198000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Albany Manana Custom": { gov: 130000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Karin Calico GTF": { gov: 276000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Pfister Comet S2": { gov: 281000, fuel: "Premium", weight: "45 kg", mcoin: null },
+            "Ubermacht Cypher": { gov: 206000, fuel: "Plus", weight: "70 kg", mcoin: null },
+            "Annis Euros": { gov: 195000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Karin Futo GTX": { gov: 174000, fuel: "Regular", weight: "20 kg", mcoin: null },
+            "Pfister Growler": { gov: 272000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Dinka Jester RR": { gov: 275000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Annis Remus": { gov: 200000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Dinka RT3000": { gov: 214000, fuel: "Regular", weight: "25 kg", mcoin: null },
+            "Karin Sultan RS Classic": { gov: 248000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Emperor Vectre": { gov: 221000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Annis ZR350": { gov: 164000, fuel: "Plus", weight: "40 kg", mcoin: null },
+            "Lampadati Corsita": { gov: 308000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Obey Omnis e-GT": { gov: 247000, fuel: "Electro", weight: "80 kg", mcoin: null },
+            "Benefactor SM722": { gov: 296000, fuel: "Premium", weight: "60 kg", mcoin: null },
+            "Obey 10F": { gov: 291000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Obey 10F Widebody": { gov: 281000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Ubermacht Sentinel Classic Widebody": { gov: 260000, fuel: "Regular", weight: "30 kg", mcoin: null },
+            "Annis 300R": { gov: 250000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Toundra Panthere": { gov: 291000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Karin Hotring Everon": { gov: 169000, fuel: "Regular", weight: "70 kg", mcoin: null },
+            "Penaud La Coureuse": { gov: 169000, fuel: "Electro", weight: "40 kg", mcoin: null },
+            "Bravado Hotring Hellfire": { gov: 271000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Grotti Itali GTO Stinger TT": { gov: 264000, fuel: "Premium", weight: "40 kg", mcoin: null },
+            "Ocelot Ardent": { gov: 193000, fuel: "Plus", weight: "10 kg", mcoin: null },
+            "Albany Roosevelt": { gov: 116000, fuel: "Regular", weight: "15 kg", mcoin: null },
+            "Albany Franken Stange": { gov: 150000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "Albany Roosevelt Valor": { gov: 115000, fuel: "Regular", weight: "15 kg", mcoin: null },
+            "Lampadati Casco": { gov: 235000, fuel: "Regular", weight: "30 kg", mcoin: null },
+            "Grotti Cheetah Classic": { gov: 257000, fuel: "Premium", weight: "40 kg", mcoin: null },
+            "Invetero Coquette Classic": { gov: 205000, fuel: "Regular", weight: "20 kg", mcoin: null },
+            "Imponte Deluxo": { gov: 236000, fuel: "Regular", weight: "10 kg", mcoin: null },
+            "Weeny Dynasty": { gov: 82000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Vulcar Fagaloa": { gov: 84000, fuel: "Regular", weight: "100 kg", mcoin: null },
+            "Benefactor Stirling GT": { gov: 110000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Grotti GT500": { gov: 155000, fuel: "Regular", weight: "30 kg", mcoin: null },
+            "Pegassi Infernus Classic": { gov: 219000, fuel: "Plus", weight: "40 kg", mcoin: null },
+            "Dewbauchee JB 700": { gov: 217000, fuel: "Regular", weight: "20 kg", mcoin: null },
+            "Dewbauchee JB 700W": { gov: 219000, fuel: "Regular", weight: "20 kg", mcoin: null },
+            "Declasse Mamba": { gov: 183000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Albany Manana": { gov: 91000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Lampadati Michelli GT": { gov: 139000, fuel: "Regular", weight: "30 kg", mcoin: null },
+            "Pegassi Monroe": { gov: 248000, fuel: "Plus", weight: "35 kg", mcoin: null },
+            "Vulcar Nebula Turbo": { gov: 104000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Vapid Peyote": { gov: 76000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Vapid Peyote Custom": { gov: 140000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Lampadati Pigalle": { gov: 233000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Dewbauchee Rapid GT Classic": { gov: 247000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Vapid Retinue": { gov: 160000, fuel: "Regular", weight: "30 kg", mcoin: null },
+            "Vapid Retinue Mk II": { gov: 210000, fuel: "Regular", weight: "25 kg", mcoin: null },
+            "Annis Savestra": { gov: 172000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Grotti Stinger": { gov: 154000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Grotti Stinger GT": { gov: 159000, fuel: "Plus", weight: "30 kg", mcoin: null },
+            "Ocelot Stromberg": { gov: 162000, fuel: "Plus", weight: "10 kg", mcoin: null },
+            "Ocelot Swinger": { gov: 230000, fuel: "Plus", weight: "25 kg", mcoin: null },
+            "Pegassi Torero": { gov: 202000, fuel: "Plus", weight: "10 kg", mcoin: null },
+            "Declasse Tornado": { gov: 80000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Declasse Tornado2": { gov: 80000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Declasse Tornado3": { gov: 44000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Declasse Tornado4": { gov: 44000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Declasse Tornado Custom": { gov: 77000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Declasse Tornado Rat Rod": { gov: 50000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Grotti Turismo Classic": { gov: 189000, fuel: "Plus", weight: "40 kg", mcoin: null },
+            "Lampadati Viseris": { gov: 246000, fuel: "Plus", weight: "10 kg", mcoin: null },
+            "Karin 190z": { gov: 130000, fuel: "Plus", weight: "25 kg", mcoin: null },
+            "Truffade Z-Type": { gov: 262000, fuel: "Regular", weight: "5 kg", mcoin: null },
+            "Ubermacht Zion Classic": { gov: 165000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "RUNE Cheburek": { gov: 148000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Pegassi Toreador": { gov: 179000, fuel: "Regular", weight: "15 kg", mcoin: null },
+            "Truffade Adder": { gov: 266000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Overflod Autarch": { gov: 268000, fuel: "Premium", weight: "15 kg", mcoin: null },
+            "Bravado Banshee 900R": { gov: 261000, fuel: "Premium", weight: "45 kg", mcoin: null },
+            "Vapid Bullet": { gov: 217000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Grotti Cheetah": { gov: 273000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Coil Cyclone": { gov: 329000, fuel: "Electro", weight: "35 kg", mcoin: null },
+            "Overflod Entity XXR": { gov: 327000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Overflod Entity XF": { gov: 308000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Progen Emerus": { gov: 349000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Vapid FMJ": { gov: 297000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Grotti Furia": { gov: 312000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Progen GP1": { gov: 308000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Pegassi Infernus": { gov: 267000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Progen Itali GTB": { gov: 321000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Progen Itali GTB Custom": { gov: 321000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Benefactor Krieger": { gov: 357000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Annis RE-7B": { gov: 267000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Truffade Nero": { gov: 326000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Truffade Nero Custom": { gov: 326000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Pegassi Osiris": { gov: 311000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Ocelot Penetrator": { gov: 281000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Pfister 811": { gov: 327000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Grotti X80 Proto": { gov: 340000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Pegassi Reaper": { gov: 297000, fuel: "Premium", weight: "35 kg", mcoin: null },
+            "Annis S80RR": { gov: 266000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Ubermacht SC1": { gov: 269000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Emperor ETR1": { gov: 263000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Karin Sultan RS": { gov: 286000, fuel: "Premium", weight: "60 kg", mcoin: null },
+            "Progen T20": { gov: 314000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Cheval Taipan": { gov: 283000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Pegassi Tempesta": { gov: 318000, fuel: "Premium", weight: "35 kg", mcoin: null },
+            "Pegassi Tezeract": { gov: 323000, fuel: "Electro", weight: "10 kg", mcoin: null },
+            "Truffade Thrax": { gov: 333000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Grotti Turismo R": { gov: 290000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Overflod Tyrant": { gov: 323000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Progen Tyrus": { gov: 301000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Pegassi Vacca": { gov: 266000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Dewbauchee Vagner": { gov: 329000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Grotti Visione": { gov: 316000, fuel: "Premium", weight: "15 kg", mcoin: null },
+            "Coil Voltic": { gov: 194000, fuel: "Electro", weight: "15 kg", mcoin: null },
+            "Ocelot XA-21": { gov: 313000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Pegassi Zentorno": { gov: 323000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Pegassi Zorrusso": { gov: 321000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Lampadati Tigon": { gov: 337000, fuel: "Premium", weight: "15 kg", mcoin: null },
+            "Grotti Itali RSX": { gov: 383000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Benefactor LM87": { gov: 316000, fuel: "Premium", weight: "0", mcoin: null },
+            "Pegassi Torero XO": { gov: 376000, fuel: "Premium", weight: "0", mcoin: null },
+            "Overflod Entity MT": { gov: 293000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Ocelot Virtue": { gov: 397000, fuel: "Electro", weight: "55 kg", mcoin: null },
+            "Nagasaki Caddy": { gov: 20400, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "HVY Docktug": { gov: 122000, fuel: "Diesel", weight: "10 kg", mcoin: null },
+            "Vapid Sadler": { gov: 180000, fuel: "Diesel", weight: "85 kg", mcoin: null },
+            "Vapid Contender Utility Truck": { gov: 22000, fuel: "Diesel", weight: "10 kg", mcoin: null },
+            "Bravado Bison": { gov: 332000, fuel: "Diesel", weight: "87 kg", mcoin: null },
+            "Vapid Bobcat XL": { gov: 133000, fuel: "Diesel", weight: "78 kg", mcoin: null },
+            "Declasse Burrito": { gov: 440000, fuel: "Diesel", weight: "86 kg", mcoin: null },
+            "Brute Camper": { gov: 72000, fuel: "Diesel", weight: "50 kg", mcoin: null },
+            "Zirconium Journey": { gov: 54000, fuel: "Diesel", weight: "70 kg", mcoin: null },
+            "Bravado Paradise": { gov: 866000, fuel: "Diesel", weight: "180 kg", mcoin: null },
+            "Brute Pony": { gov: 730000, fuel: "Diesel", weight: "150 kg", mcoin: null },
+            "Vapid Speedo": { gov: 66000, fuel: "Diesel", weight: "2000 kg", mcoin: null },
+            "Vapid Clown Van": { gov: 32000, fuel: "Diesel", weight: "200 kg", mcoin: null },
+            "Brute Taco Van": { gov: 23000, fuel: "Diesel", weight: "200 kg", mcoin: null },
+            "Bravado Youga": { gov: 395000, fuel: "Diesel", weight: "66 kg", mcoin: null },
+            "Bravado Youga Classic": { gov: 160000, fuel: "Diesel", weight: "69 kg", mcoin: null },
+            "Bravado Youga Classic 4x4": { gov: 210000, fuel: "Diesel", weight: "79 kg", mcoin: null },
+            "BF Surfer Custom": { gov: 180000, fuel: "Diesel", weight: "120 kg", mcoin: null },
+            "Vapid Ratel 2": { gov: 200000, fuel: "Diesel", weight: "2000 kg", mcoin: null },
+            "Nagasaki Buzzard S": { gov: 6250000, fuel: "Regular", weight: "500 kg", mcoin: "50 000 M-Coins" },
+            "Maibatsu Frogger S": { gov: 5000000, fuel: "Regular", weight: "400 kg", mcoin: "40 000 M-Coins" },
+            "Buckingham Maverick S": { gov: 3125000, fuel: "Regular", weight: "250 kg", mcoin: "25 000 M-Coins" },
+            "Buckingham SuperVolito S": { gov: 8750000, fuel: "Regular", weight: "700 kg", mcoin: "70 000 M-Coins" },
+            "Buckingham SuperVolito Carbon S": { gov: 10000000, fuel: "Regular", weight: "800 kg", mcoin: "80 000 M-Coins" },
+            "Buckingham Swift S": { gov: 12500000, fuel: "Regular", weight: "1000 kg", mcoin: "100 000 M-Coins" },
+            "Buckingham Volatus S": { gov: 18750000, fuel: "Regular", weight: "1500 kg", mcoin: "150 000 M-Coins" },
+            "HVY Sparrow S": { gov: 5000000, fuel: "Regular", weight: "400 kg", mcoin: "40 000 M-Coins" },
+            "Maibatsu Mule S": { gov: 200000, fuel: "Diesel", weight: "100 kg", mcoin: null },
+            "Western Reever": { gov: 166000, fuel: "Premium", weight: "0", mcoin: null },
+            "Pfister Astron": { gov: 247000, fuel: "Premium", weight: "10 kg", mcoin: null },
+            "Nagasaki Shinobi": { gov: 207000, fuel: "Premium", weight: "0", mcoin: null },
+            "Bravado Buffalo STX": { gov: 262000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Mammoth Patriot Mil-Spec": { gov: 72000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Lampadati Cinquemila": { gov: 267000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Enus Deity": { gov: 176000, fuel: "Premium", weight: "60 kg", mcoin: null },
+            "Pfister Comet S2 Cabrio": { gov: 303000, fuel: "Premium", weight: "40 kg", mcoin: null },
+            "Dewbauchee Champion": { gov: 304000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Pegassi Ignus": { gov: 346000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Overflod Zeno": { gov: 329000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Gallivanter Baller ST": { gov: 179000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Declasse Granger 3600LX": { gov: 127000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Obey I-Wagen": { gov: 170000, fuel: "Electro", weight: "35 kg", mcoin: null },
+            "Enus Jubilee": { gov: 182000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Grotti Turismo Omaggio": { gov: 337000, fuel: "Premium", weight: "40 kg", mcoin: null },
+            "Albany Cavalcade XL": { gov: 175000, fuel: "Premium", weight: "90 kg", mcoin: null },
+            "Declasse Vigero ZX Convertible": { gov: 161000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Vapid Dominator GT2": { gov: 243000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Gallivanter Baller ST-D": { gov: 271000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Vapid Aleutian": { gov: 178000, fuel: "Plus", weight: "75 kg", mcoin: null },
+            "Canis Terminus": { gov: 260000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Karin Vivanite": { gov: 133000, fuel: "Plus", weight: "70 kg", mcoin: null },
+            "Bravado Dorado": { gov: 144000, fuel: "Regular", weight: "55 kg", mcoin: null },
+            "Fathom FR36": { gov: 243000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Declasse Impaler SZ": { gov: 161000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Declasse Impaler LX": { gov: 170000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Overflod Pipistrello": { gov: 341000, fuel: "Electro", weight: "0", mcoin: null },
+            "Enus Paragon S": { gov: 345000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Ubermacht Niobe": { gov: 252000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Canis Castigator": { gov: 305000, fuel: "Plus", weight: "90 kg", mcoin: null },
+            "Bollokan Envisage": { gov: 287000, fuel: "Electro", weight: "0", mcoin: null },
+            "Invetero Coquette D1": { gov: 263000, fuel: "Plus", weight: "70 kg", mcoin: null },
+            "Declasse Yosemite 1500": { gov: 131000, fuel: "Diesel", weight: "120 kg", mcoin: null },
+            "Annis Euros X32": { gov: 142000, fuel: "Regular", weight: "70 kg", mcoin: null },
+            "Benefactor Vorschlaghammer": { gov: 254000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Vapid Dominator FX": { gov: 214000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Vapid Bullet (Police)": { gov: 300000, fuel: "Premium", weight: "40 kg", mcoin: null },
+            "Invetero Coquette (Police)": { gov: 300000, fuel: "Premium", weight: "35 kg", mcoin: null },
+            "Vapid Dominator GTX (Police)": { gov: 300000, fuel: "Premium", weight: "60 kg", mcoin: null },
+            "Declasse Vigero ZX (Police)": { gov: 300000, fuel: "Premium", weight: "65 kg", mcoin: null },
+            "Bravado Buffalo (Police)": { gov: 300000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "Vapid Contender (Police)": { gov: 300000, fuel: "Diesel", weight: "250 kg", mcoin: null },
+            "Vapid Stanier (Police)": { gov: 300000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Vapid Interceptor": { gov: 300000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "HVY Insurgent (Police)": { gov: 300000, fuel: "Diesel", weight: "500 kg", mcoin: null },
+            "Vapid Scout (Police)": { gov: 300000, fuel: "Regular", weight: "120 kg", mcoin: null },
+            "Vapid Speedo (Police)": { gov: 300000, fuel: "Diesel", weight: "2000 kg", mcoin: null },
+            "Bravado Gauntlet Hellfire (Police)": { gov: 300000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Vapid Cruiser (Police)": { gov: 300000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "Bravado Cheval (Police)": { gov: 300000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "Declasse Granger (Police)": { gov: 300000, fuel: "Diesel", weight: "150 kg", mcoin: null },
+            "Vapid Scout (Sheriff)": { gov: 300000, fuel: "Regular", weight: "120 kg", mcoin: null },
+            "Bravado Gauntlet Hellfire (Sheriff)": { gov: 300000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "HVY Insurgent (Sheriff)": { gov: 300000, fuel: "Diesel", weight: "500 kg", mcoin: null },
+            "Vapid Cruiser (Unmarked)": { gov: 300000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "HVY Insurgent (FIB)": { gov: 300000, fuel: "Diesel", weight: "500 kg", mcoin: null },
+            "Benefactor XLS (FIB)": { gov: 300000, fuel: "Plus", weight: "120 kg", mcoin: null },
+            "Ocelot Jugular (FIB)": { gov: 300000, fuel: "Plus", weight: "100 kg", mcoin: null },
+            "Vapid Speedo (FIB)": { gov: 300000, fuel: "Regular", weight: "300 kg", mcoin: null },
+            "Pfister Neon (FIB)": { gov: 300000, fuel: "Electro", weight: "80 kg", mcoin: null },
+            "Lampadati Novak (FIB)": { gov: 300000, fuel: "Regular", weight: "110 kg", mcoin: null },
+            "Vapid Caracara (FIB)": { gov: 300000, fuel: "Diesel", weight: "250 kg", mcoin: null },
+            "Bravado Gresley (FIB)": { gov: 300000, fuel: "Regular", weight: "120 kg", mcoin: null },
+            "Vapid Scout (Unmarked)": { gov: 300000, fuel: "Regular", weight: "120 kg", mcoin: null },
+            "Vapid Dominator GTX (FIB)": { gov: 300000, fuel: "Plus", weight: "75 kg", mcoin: null },
+            "Vapid Tarv": { gov: 300000, fuel: "Diesel", weight: "2000 kg", mcoin: null },
+            "Vapid Speedo N": { gov: 300000, fuel: "Plus", weight: "1000 kg", mcoin: null },
+            "Dundreary Landroamer": { gov: 300000, fuel: "Plus", weight: "200 kg", mcoin: null },
+            "Vapid Scout (Undercover)": { gov: 300000, fuel: "Plus", weight: "120 kg", mcoin: null },
+            "Dundreary Landstalker XL (Undercover)": { gov: 300000, fuel: "Plus", weight: "135 kg", mcoin: null },
+            "Annis ZR-380 Custom": { gov: 251000, fuel: "Plus", weight: "0", mcoin: null },
+            "Annis ZR-380": { gov: 261000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Benefactor Zion Classic Krieger Special": { gov: 225000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Karin Sigma-Two": { gov: 239000, fuel: "Plus", weight: "35 kg", mcoin: null },
+            "Benefactor Schwartzer Classic": { gov: 126000, fuel: "Diesel", weight: "40 kg", mcoin: null },
+            "Annis S-230": { gov: 127000, fuel: "Regular", weight: "40 kg", mcoin: null },
+            "Vapid Speedo Express": { gov: 400000, fuel: "Diesel", weight: "110 kg", mcoin: null },
+            "Bravado Gauntlet S": { gov: 221000, fuel: "Premium", weight: "45 kg", mcoin: null },
+            "BF Club GTR": { gov: 204000, fuel: "Regular", weight: "35 kg", mcoin: null },
+            "Bravado Bison 4": { gov: 390000, fuel: "Plus", weight: "89 kg", mcoin: null },
+            "Declasse Yosemite SWB": { gov: 149000, fuel: "Diesel", weight: "90 kg", mcoin: null },
+            "Bravado Feroci Custom": { gov: 274000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Annis Hellion XL": { gov: 197000, fuel: "Diesel", weight: "95 kg", mcoin: null },
+            "Dinka Jester (Vanilla)": { gov: 293000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Vapid Scout (2)": { gov: 261000, fuel: "Plus", weight: "95 kg", mcoin: null },
+            "Ubermacht Seraph XS": { gov: 176000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Maibatsu Vincent Sport": { gov: 230000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Ocelot Jackal Custom": { gov: 344000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Maibatsu Penumbra Retro": { gov: 119000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Maibatsu Penumbra Retro (RHD)": { gov: 119000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Maibatsu Penumbra Retro Spyder": { gov: 116000, fuel: "Plus", weight: "50 kg", mcoin: null },
+            "Maibatsu Penumbra Retro Custom": { gov: 305000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Maibatsu Penumbra Retro S-Custom": { gov: 305000, fuel: "Plus", weight: "55 kg", mcoin: null },
+            "Daimler Runner": { gov: 3200000, fuel: "Diesel", weight: "180 kg", mcoin: "7 995 M-Coins" },
+            "Betsy Runner": { gov: 2800000, fuel: "Diesel", weight: "180 kg", mcoin: "6 995 M-Coins" },
+            "Gerlinger T680": { gov: 12500000, fuel: "Diesel", weight: "23 t", mcoin: "25 000 M-Coins" },
+            "Rapid Hammer EV 4x4": { gov: 7500000, fuel: "Electro", weight: "180 kg", mcoin: null },
+            "Merlin Veil": { gov: 14300000, fuel: "Premium", weight: "200 kg", mcoin: null },
+            "Wayn Mustang HG": { gov: 3750000, fuel: "Premium", weight: "0", mcoin: null },
+            "Yataro Shinichi": { gov: 750000, fuel: "Regular", weight: "60 kg", mcoin: "Majestic Премиум - 10..." },
+            "Wayn F-150": { gov: 1000000, fuel: "Diesel", weight: "100 kg", mcoin: "Majestic Премиум - 40..." },
+            "Wurtterm 928": { gov: 1250000, fuel: "Plus", weight: "40 kg", mcoin: "Majestic Премиум - 70..." },
+            "Horen 80 B4": { gov: 1250000, fuel: "Regular", weight: "80 kg", mcoin: "Majestic Премиум - 80..." },
+            "Britland Runaway": { gov: 875000, fuel: "Diesel", weight: "110 kg", mcoin: "Majestic Премиум - 130..." },
+            "Betsy Snake SR II": { gov: 2187500, fuel: "Plus", weight: "40 kg", mcoin: "Majestic Премиум - 160..." },
+            "Luxwell Gil 300": { gov: 2500000, fuel: "Plus", weight: "65 kg", mcoin: "Majestic Премиум - 190..." },
+            "Cornelian Cage": { gov: 3125000, fuel: "Diesel", weight: "140 kg", mcoin: "Majestic Премиум - 220..." },
+            "Daimler SLR": { gov: 3750000, fuel: "Premium", weight: "45 kg", mcoin: "Majestic Премиум - 250..." },
+            "Fujisawa RC21V": { gov: 4375000, fuel: "Premium", weight: "0", mcoin: "Majestic Премиум - 280..." },
+            "Rapid Hammer HX": { gov: 5000000, fuel: "Premium", weight: "120 kg", mcoin: "Majestic Премиум - 30..." },
+            "Tatsuro Land Cruiser 15...": { gov: 5625000, fuel: "Diesel", weight: "120 kg", mcoin: "Majestic Премиум - 340..." },
+            "Pleiad VRX": { gov: 6500000, fuel: "Premium", weight: "75 kg", mcoin: "Majestic Премиум - 380..." },
+            "SAW Malo": { gov: 7500000, fuel: "Diesel", weight: "130 kg", mcoin: "Majestic Премиум - 420..." },
+            "Molsheim Formula": { gov: 32800000, fuel: "Premium", weight: "0", mcoin: null },
+            "Ferruccio Ezenza SV12": { gov: 21300000, fuel: "Premium", weight: "0", mcoin: null },
+            "Daimler X-Class": { gov: 8700000, fuel: "Premium", weight: "180 kg", mcoin: "7 1..." },
+            "Daimler G-Class W463 II 4x4": { gov: 11000000, fuel: "Premium", weight: "170 kg", mcoin: "11..." },
+            "Ferruccio Devil": { gov: 7200000, fuel: "Plus", weight: "60 kg", mcoin: "11..." },
+            "Rapid Hammer EV": { gov: 6800000, fuel: "Electro", weight: "160 kg", mcoin: "11..." },
+            "Wurtterm Messiah": { gov: 26700000, fuel: "Electro", weight: "20 kg", mcoin: null },
+            "Blau & Weiss XM G09": { gov: 11500000, fuel: "Premium", weight: "160 kg", mcoin: "13..." },
+            "Leslie Ayrtone": { gov: 28100000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "Hethel Remir": { gov: 9700000, fuel: "Premium", weight: "40 kg", mcoin: "13..." },
+            "Wayn F-150 Predator 6X6": { gov: 7000000, fuel: "Premium", weight: "250 kg", mcoin: "16..." },
+            "York Bamford DB11": { gov: 12000000, fuel: "Premium", weight: "50 kg", mcoin: "16..." },
+            "Pleiad BRZ": { gov: 3500000, fuel: "Plus", weight: "65 kg", mcoin: "16..." },
+            "AKI K-Five": { gov: 2800000, fuel: "Plus", weight: "90 kg", mcoin: "16..." },
+            "Yataro Sunrise D30": { gov: 1900000, fuel: "Regular", weight: "60 kg", mcoin: "17..." },
+            "Wayn Coronet V": { gov: 1000000, fuel: "Regular", weight: "70 kg", mcoin: "17..." },
+            "Haracio Huaira R": { gov: 33400000, fuel: "Premium", weight: "0", mcoin: "17..." },
+            "Cortanze Farina": { gov: 28700000, fuel: "Electro", weight: "50 kg", mcoin: "17..." },
+            "Xi Auto L9": { gov: 3000000, fuel: "Electro", weight: "120 kg", mcoin: "16..." },
+            "Wulfsborg Wolf Mk 8": { gov: 1800000, fuel: "Plus", weight: "70 kg", mcoin: "16..." },
+            "Rapid Nølsen": { gov: 1600000, fuel: "Regular", weight: "110 kg", mcoin: "16..." },
+            "Wulfsborg Marce GR": { gov: 800000, fuel: "Regular", weight: "65 kg", mcoin: "16..." },
+            "Immensity Q60S": { gov: 3400000, fuel: "Plus", weight: "80 kg", mcoin: "16..." },
+            "Fujisawa S2000": { gov: 1700000, fuel: "Regular", weight: "65 kg", mcoin: "16..." },
+            "Wurtterm 911 901-Line": { gov: 1000000, fuel: "Regular", weight: "70 kg", mcoin: "17..." },
+            "Wulfsborg Norma": { gov: 26500000, fuel: "Electro", weight: "0", mcoin: "17..." },
+            "Maranello F8": { gov: 19500000, fuel: "Premium", weight: "60 kg", mcoin: "16..." },
+            "Horen A8": { gov: 10000000, fuel: "Premium", weight: "90 kg", mcoin: "15..." },
+            "Betsy Myles": { gov: 1800000, fuel: "Plus", weight: "110 kg", mcoin: "15..." },
+            "Dunbar GNX": { gov: 1000000, fuel: "Regular", weight: "70 kg", mcoin: "15..." },
+            "Hyeonji Lunar I": { gov: 600000, fuel: "Regular", weight: "60 kg", mcoin: "15..." },
+            "Molsheim Blanche": { gov: 31700000, fuel: "Premium", weight: "20 kg", mcoin: null },
+            "York Bamford Malicious": { gov: 18900000, fuel: "Premium", weight: "50 kg", mcoin: "15..." },
+            "Milner Bangi": { gov: 20500000, fuel: "Premium", weight: "10 kg", mcoin: "15..." },
+            "Daimler-AMX SLS": { gov: 14200000, fuel: "Premium", weight: "60 kg", mcoin: "14..." },
+            "Castelsarrasin XTS Limo": { gov: 7700000, fuel: "Plus", weight: "80 kg", mcoin: "14..." },
+            "Cornelian Tylemo TXXX": { gov: 3600000, fuel: "Premium", weight: "175 kg", mcoin: "14..." },
+            "Castelsarrasin CT5": { gov: 8800000, fuel: "Premium", weight: "90 kg", mcoin: "14..." },
+            "Britland Runaway L633": { gov: 4100000, fuel: "Premium", weight: "110 kg", mcoin: "12..." },
+            "Daimler E-Class W212": { gov: 4300000, fuel: "Plus", weight: "85 kg", mcoin: "12..." },
+            "Blau & Weiss 5 F10": { gov: 4600000, fuel: "Plus", weight: "90 kg", mcoin: "12..." },
+            "Daimler C-Class W203": { gov: 1000000, fuel: "Regular", weight: "95 kg", mcoin: "12..." },
+            "Horen A4 B5": { gov: 800000, fuel: "Regular", weight: "105 kg", mcoin: "12..." },
+            "Adel Rose J GTC": { gov: 1300000, fuel: "Regular", weight: "50 kg", mcoin: "12..." },
+            "AKI Rino Q8 Sedan": { gov: 700000, fuel: "Regular", weight: "70 kg", mcoin: "12..." },
+            "AKI Rino Q8 5-doors": { gov: 700000, fuel: "Regular", weight: "80 kg", mcoin: "12..." },
+            "Marcel Logan": { gov: 700000, fuel: "Regular", weight: "70 kg", mcoin: "11..." },
+            "York Bamford DB5": { gov: 1400000, fuel: "Plus", weight: "90 kg", mcoin: "11..." },
+            "Betsy Charger FF": { gov: 1700000, fuel: "Plus", weight: "110 kg", mcoin: "11..." },
+            "Wayn Line T": { gov: 500000, fuel: "Plus", weight: "110 kg", mcoin: "11..." },
+            "Quartz Regalia": { gov: 14000000, fuel: "Premium", weight: "120 kg", mcoin: null },
+            "Quadra Turbo-R V-Tech": { gov: 4200000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Daimler-AMX M12B Warthog": { gov: 3300000, fuel: "Plus", weight: "100 kg", mcoin: null },
+            "Obwand KITT": { gov: 1400000, fuel: "Regular", weight: "50 kg", mcoin: null },
+            "Euge JW": { gov: 1000000, fuel: "Regular", weight: "80 kg", mcoin: null },
+            "Fast Wheels Milltown": { gov: 12000000, fuel: "Diesel", weight: "80 kg", mcoin: null },
+            "Fast Wheels Boner": { gov: 2000000, fuel: "Diesel", weight: "100 kg", mcoin: null },
+            "Daimler ASG P-One": { gov: 30100000, fuel: "Premium", weight: "5 kg", mcoin: null },
+            "Haracio Emola": { gov: 28000000, fuel: "Premium", weight: "15 kg", mcoin: null },
+            "Wurtterm 918 Spyder": { gov: 29000000, fuel: "Premium", weight: "30 kg", mcoin: "7..." },
+            "Angelholm Gesko": { gov: 30700000, fuel: "Premium", weight: "25 kg", mcoin: "7..." },
+            "Leslie 720-S": { gov: 19300000, fuel: "Premium", weight: "30 kg", mcoin: "7..." },
+            "Merlin Phantom VIII": { gov: 17000000, fuel: "Premium", weight: "80 kg", mcoin: "6..." },
+            "Ferruccio Cuntach": { gov: 19000000, fuel: "Premium", weight: "30 kg", mcoin: "6..." },
+            "Maranello F12 Verleenteeta": { gov: 16900000, fuel: "Premium", weight: "35 kg", mcoin: "6..." },
+            "Molsheim Weyron": { gov: 18500000, fuel: "Premium", weight: "45 kg", mcoin: "6..." },
+            "Angelholm Genera": { gov: 29400000, fuel: "Premium", weight: "40 kg", mcoin: "7..." },
+            "Horen Q8": { gov: 9300000, fuel: "Premium", weight: "160 kg", mcoin: "7..." },
+            "Maranello 488": { gov: 17800000, fuel: "Premium", weight: "30 kg", mcoin: "7..." },
+            "Daimler S-Class W223": { gov: 11900000, fuel: "Premium", weight: "95 kg", mcoin: "7..." },
+            "Blau & Weiss 7-Series G70": { gov: 12200000, fuel: "Premium", weight: "110 kg", mcoin: "8..." },
+            "Ferruccio Eventora": { gov: 13900000, fuel: "Premium", weight: "35 kg", mcoin: null },
+            "York Bamford Vulcore": { gov: 15600000, fuel: "Premium", weight: "0", mcoin: null },
+            "Horen I-Tron GT": { gov: 7600000, fuel: "Electro", weight: "95 kg", mcoin: "8..." },
+            "Wurtterm Taycun": { gov: 10600000, fuel: "Electro", weight: "80 kg", mcoin: "8..." },
+            "Blau & Weiss X6 G06": { gov: 10200000, fuel: "Premium", weight: "100 kg", mcoin: "8..." },
+            "Elon Line S": { gov: 3700000, fuel: "Electro", weight: "85 kg", mcoin: "8..." },
+            "Blau & Weiss 5 G60": { gov: 10200000, fuel: "Premium", weight: "80 kg", mcoin: "8..." },
+            "Daimler E-Class W214": { gov: 10500000, fuel: "Premium", weight: "90 kg", mcoin: "8..." },
+            "Daimler ASG GT 63s": { gov: 10500000, fuel: "Premium", weight: "80 kg", mcoin: "8..." },
+            "Wayn F-150 Predator": { gov: 6800000, fuel: "Plus", weight: "175 kg", mcoin: "8..." },
+            "Horen RS7 II": { gov: 9300000, fuel: "Premium", weight: "85 kg", mcoin: "8..." },
+            "Daimler GLS X166": { gov: 3600000, fuel: "Premium", weight: "120 kg", mcoin: null },
+            "Wurtterm Rayenne": { gov: 10600000, fuel: "Premium", weight: "100 kg", mcoin: "8..." },
+            "Blau & Weiss X7 G07": { gov: 9000000, fuel: "Premium", weight: "120 kg", mcoin: "8..." },
+            "Betsy Snake VX": { gov: 6900000, fuel: "Premium", weight: "45 kg", mcoin: "7..." },
+            "Daimler S-Class W222": { gov: 6900000, fuel: "Premium", weight: "90 kg", mcoin: "7..." },
+            "Blau & Weiss 7 M760Li": { gov: 7100000, fuel: "Premium", weight: "80 kg", mcoin: "7..." },
+            "Lyons XE-S": { gov: 2200000, fuel: "Plus", weight: "85 kg", mcoin: "7..." },
+            "Daimler GLE Coupe C292": { gov: 5200000, fuel: "Premium", weight: "100 kg", mcoin: "7..." },
+            "Lyons F-Model R Coupe": { gov: 5700000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Blau & Weiss X6 M F86": { gov: 3800000, fuel: "Premium", weight: "100 kg", mcoin: "7..." },
+            "Horen R8 Type 4S": { gov: 8900000, fuel: "Premium", weight: "25 kg", mcoin: "7..." },
+            "Blau & Weiss 8": { gov: 8300000, fuel: "Premium", weight: "70 kg", mcoin: "7..." },
+            "Fujisawa NSX NC1": { gov: 5200000, fuel: "Premium", weight: "25 kg", mcoin: null },
+            "Blau & Weiss M4 G82 Contention": { gov: 5800000, fuel: "Premium", weight: "75 kg", mcoin: null },
+            "Horen RS5 B9": { gov: 5000000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Euge Great Cherokee": { gov: 2200000, fuel: "Premium", weight: "125 kg", mcoin: null },
+            "Blau & Weiss Z4 M40i": { gov: 4300000, fuel: "Premium", weight: "40 kg", mcoin: null },
+            "Horen TT S8": { gov: 4700000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Daimler GLE V167": { gov: 9300000, fuel: "Premium", weight: "130 kg", mcoin: null },
+            "Blau & Weiss X5 G05": { gov: 9700000, fuel: "Premium", weight: "120 kg", mcoin: null },
+            "Wurtterm Mauer": { gov: 4000000, fuel: "Premium", weight: "115 kg", mcoin: "4..." },
+            "Horen RS6": { gov: 6700000, fuel: "Premium", weight: "90 kg", mcoin: "4..." },
+            "Tatsuro Land Cruiser 300": { gov: 5700000, fuel: "Premium", weight: "110 kg", mcoin: "4..." },
+            "Daimler G-Class W463": { gov: 2500000, fuel: "Plus", weight: "120 kg", mcoin: "4..." },
+            "Blau & Weiss i8": { gov: 4800000, fuel: "Electro", weight: "40 kg", mcoin: "4..." },
+            "Cornelian Corvette C7": { gov: 5500000, fuel: "Premium", weight: "60 kg", mcoin: "4..." },
+            "York Bamford Vanquish": { gov: 7400000, fuel: "Premium", weight: "40 kg", mcoin: "4..." },
+            "Aikawa GT-R R34": { gov: 2400000, fuel: "Premium", weight: "60 kg", mcoin: "4..." },
+            "Elon Line X": { gov: 3000000, fuel: "Electro", weight: "85 kg", mcoin: null },
+            "Castelsarrasin Excalibur": { gov: 2600000, fuel: "Premium", weight: "120 kg", mcoin: null },
+            "Michio GSX-R 1000": { gov: 2800000, fuel: "Premium", weight: "0", mcoin: null },
+            "Betsy Charger LD": { gov: 2900000, fuel: "Plus", weight: "80 kg", mcoin: null },
+            "Immensity FX50 S": { gov: 3100000, fuel: "Plus", weight: "75 kg", mcoin: "7..." },
+            "Alexis LX 570": { gov: 6300000, fuel: "Premium", weight: "105 kg", mcoin: "7..." },
+            "Britland Gover L405": { gov: 3000000, fuel: "Premium", weight: "120 kg", mcoin: "7..." },
+            "Yataro Lance Revolution X": { gov: 1600000, fuel: "Plus", weight: "50 kg", mcoin: "7..." },
+            "Horen RS7": { gov: 4700000, fuel: "Premium", weight: "85 kg", mcoin: "7..." },
+            "Blau & Weiss X5 M E70": { gov: 3600000, fuel: "Premium", weight: "100 kg", mcoin: "7..." },
+            "Tatsuro Land Cruiser 200": { gov: 3000000, fuel: "Premium", weight: "110 kg", mcoin: "7..." },
+            "Cornelian Camaro 1TL": { gov: 3500000, fuel: "Premium", weight: "80 kg", mcoin: "7..." },
+            "Wayn Mustang S550": { gov: 3000000, fuel: "Plus", weight: "75 kg", mcoin: null },
+            "Blau & Weiss 3 G20": { gov: 2600000, fuel: "Plus", weight: "70 kg", mcoin: null },
+            "AKI Sprinter": { gov: 1900000, fuel: "Plus", weight: "80 kg", mcoin: null },
+            "Blau & Weiss M5 E60": { gov: 3300000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Yataro Lance Revolution IX": { gov: 1500000, fuel: "Plus", weight: "60 kg", mcoin: null },
+            "Wulfsborg Twareg": { gov: 2300000, fuel: "Plus", weight: "95 kg", mcoin: null },
+            "Wayn Bucher": { gov: 2200000, fuel: "Plus", weight: "105 kg", mcoin: null },
+            "Cornelian Takho": { gov: 2500000, fuel: "Plus", weight: "90 kg", mcoin: null },
+            "Tatsuro GR Superia": { gov: 1875000, fuel: "Plus", weight: "50 kg", mcoin: "3..." },
+            "Matsuda RX-7": { gov: 1843750, fuel: "Plus", weight: "40 kg", mcoin: "3..." },
+            "Aikawa 370Z": { gov: 1812500, fuel: "Plus", weight: "55 kg", mcoin: "3..." },
+            "Tatsuro Superia A80": { gov: 1800000, fuel: "Plus", weight: "50 kg", mcoin: "3..." },
+            "Aikawa Silvia S15": { gov: 1750000, fuel: "Plus", weight: "50 kg", mcoin: "3..." },
+            "Wayn Deming": { gov: 1000000, fuel: "Regular", weight: "70 kg", mcoin: "3..." },
+            "Tatsuro Marco II 100": { gov: 625000, fuel: "Regular", weight: "65 kg", mcoin: "3..." },
+            "Tatsuro Camria XV70": { gov: 1600000, fuel: "Plus", weight: "65 kg", mcoin: "3..." },
+            "Fujisawa Passcord": { gov: 1000000, fuel: "Plus", weight: "65 kg", mcoin: null },
+            "Daimler A-Class W177": { gov: 2000000, fuel: "Plus", weight: "70 kg", mcoin: "3..." },
+            "Betsy Contender": { gov: 1000000, fuel: "Plus", weight: "70 kg", mcoin: "3..." },
+            "Wayn Mustang '69": { gov: 900000, fuel: "Regular", weight: "50 kg", mcoin: "3..." },
+            "Cornelian Camaro '70": { gov: 800000, fuel: "Regular", weight: "60 kg", mcoin: "3..." },
+            "Pleiad Impressa VRX": { gov: 1100000, fuel: "Plus", weight: "45 kg", mcoin: null },
+            "Cornelian Impala SN": { gov: 700000, fuel: "Regular", weight: "75 kg", mcoin: "3..." },
+            "Wulfsborg Twareg R50": { gov: 1800000, fuel: "Regular", weight: "90 kg", mcoin: null },
+            "Wayn Fox RS": { gov: 1600000, fuel: "Plus", weight: "60 kg", mcoin: "3..." },
+            "Wulfsborg Wolf Mk 7": { gov: 1200000, fuel: "Plus", weight: "60 kg", mcoin: "3..." },
+            "Daimler E-Class W210": { gov: 3000000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Blau & Weiss 5 E39": { gov: 300000, fuel: "Regular", weight: "65 kg", mcoin: "3..." },
+            "Tatsuro Camria XV55": { gov: 1000000, fuel: "Regular", weight: "75 kg", mcoin: null },
+            "Daimler S-Class W140": { gov: 1000000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Blau & Weiss 7 E38": { gov: 1000000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "Emil Olivia RS": { gov: 1000000, fuel: "Regular", weight: "70 kg", mcoin: null },
+            "AKI Rino F8": { gov: 750000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Tatsuro Runner Hachiroku": { gov: 562500, fuel: "Regular", weight: "40 kg", mcoin: "3..." },
+            "Molsheim Vivo": { gov: 31700000, fuel: "Premium", weight: "0", mcoin: null },
+            "Molsheim Shiron": { gov: 29600000, fuel: "Premium", weight: "70 kg", mcoin: null },
+            "Maranello LaMaranello": { gov: 24000000, fuel: "Premium", weight: "50 kg", mcoin: "13..." },
+            "Ferruccio Aventador SVJ": { gov: 19700000, fuel: "Premium", weight: "60 kg", mcoin: "13..." },
+            "Leslie P1": { gov: 19000000, fuel: "Premium", weight: "50 kg", mcoin: "13..." },
+            "Merlin Callinon": { gov: 17000000, fuel: "Premium", weight: "180 kg", mcoin: "13..." },
+            "Daimler G-Class W463 6x6": { gov: 8400000, fuel: "Premium", weight: "200 kg", mcoin: "2..." },
+            "Ferruccio Urus": { gov: 17200000, fuel: "Premium", weight: "180 kg", mcoin: "5..." },
+            "Ferruccio Hurricaine": { gov: 18000000, fuel: "Premium", weight: "50 kg", mcoin: "12..." },
+            "Milner Mainland GT": { gov: 10800000, fuel: "Premium", weight: "140 kg", mcoin: "2..." },
+            "Wurtterm 911 992-Line": { gov: 13400000, fuel: "Premium", weight: "50 kg", mcoin: "2..." },
+            "Daimler GLS X167": { gov: 9300000, fuel: "Premium", weight: "150 kg", mcoin: "2..." },
+            "Merlin Ghost": { gov: 11000000, fuel: "Premium", weight: "160 kg", mcoin: "3..." },
+            "Daimler G-Class W463 II": { gov: 11360000, fuel: "Premium", weight: "170 kg", mcoin: "5..." },
+            "Daimler S-Class A217": { gov: 8500000, fuel: "Premium", weight: "60 kg", mcoin: "5..." },
+            "Blau & Weiss M8 Gran Coupe": { gov: 10200000, fuel: "Premium", weight: "100 kg", mcoin: "6..." },
+            "Wurtterm Paramena": { gov: 8400000, fuel: "Premium", weight: "100 kg", mcoin: "5..." },
+            "Daimler E-Class W213": { gov: 9900000, fuel: "Premium", weight: "100 kg", mcoin: "3..." },
+            "Blau & Weiss M5 F90 Contention": { gov: 9700000, fuel: "Premium", weight: "100 kg", mcoin: "3..." },
+            "Betsy RUM 1500": { gov: 2900000, fuel: "Plus", weight: "180 kg", mcoin: "3..." },
+            "Daimler C-Class W206": { gov: 6300000, fuel: "Premium", weight: "95 kg", mcoin: "2..." },
+            "Daimler-AMX GT R": { gov: 12100000, fuel: "Premium", weight: "50 kg", mcoin: "3..." },
+            "Daimler CLS C218": { gov: 7300000, fuel: "Premium", weight: "140 kg", mcoin: "7..." },
+            "Milner Benteygo": { gov: 12000000, fuel: "Premium", weight: "170 kg", mcoin: "3..." },
+            "Wurtterm 718 S Cabrio": { gov: 4800000, fuel: "Premium", weight: "50 kg", mcoin: null },
+            "Domenico Brutora": { gov: 6000000, fuel: "Premium", weight: "0", mcoin: "2..." },
+            "Britland Velora L560": { gov: 3800000, fuel: "Premium", weight: "140 kg", mcoin: "3..." },
+            "Felisina Renigale V4 Speci...": { gov: 4700000, fuel: "Premium", weight: "0", mcoin: "2..." },
+            "Aikawa GT-R R35": { gov: 5700000, fuel: "Premium", weight: "70 kg", mcoin: "3..." },
+            "Daimler V-Class": { gov: 5400000, fuel: "Diesel", weight: "160 kg", mcoin: "5..." },
+            "ALEC Hach F56": { gov: 1400000, fuel: "Plus", weight: "100 kg", mcoin: "3..." },
+            "TAZ 2114": { gov: 400000, fuel: "Regular", weight: "60 kg", mcoin: null },
+            "TAZ Prior": { gov: 500000, fuel: "Regular", weight: "40 kg", mcoin: "1..." },
+            "TAZ Niva": { gov: 800000, fuel: "Regular", weight: "135 kg", mcoin: null },
+            "TAZ Westa": { gov: 650000, fuel: "Regular", weight: "50 kg", mcoin: "4..." },
+            "Keun Uju Matiz": { gov: 300000, fuel: "Regular", weight: "50 kg", mcoin: "2..." },
+            "TAZ 2107": { gov: 300000, fuel: "Regular", weight: "40 kg", mcoin: "2..." },
+            "TAZ 2109": { gov: 350000, fuel: "Regular", weight: "60 kg", mcoin: "2..." },
+            "Daimler Actor": { gov: 16000000, fuel: "Diesel", weight: "23 t", mcoin: null },
+            "Ferruccio Verano": { gov: 28000000, fuel: "Premium", weight: "30 kg", mcoin: "2..." },
+            "Wayn GT": { gov: 18000000, fuel: "Premium", weight: "40 kg", mcoin: "2..." },
+            "Merlin Veil Cabrio": { gov: 12800000, fuel: "Premium", weight: "140 kg", mcoin: "6..." },
+            "Maranello F40": { gov: 8900000, fuel: "Plus", weight: "80 kg", mcoin: null },
+            "Maranello SF90": { gov: 19500000, fuel: "Premium", weight: "60 kg", mcoin: "2..." },
+            "Ferruccio Centenario": { gov: 24600000, fuel: "Premium", weight: "60 kg", mcoin: "2..." },
+            "Buckingham EC135": { gov: 24000000, fuel: "Premium", weight: "1500 kg", mcoin: null },
+            "Kramer L 650": { gov: 28000000, fuel: "Diesel", weight: "2000 kg", mcoin: null },
+            "Merlin Airboat V12": { gov: 20000000, fuel: "Premium", weight: "400 kg", mcoin: null },
+            "Ferruccio Terzo": { gov: 29500000, fuel: "Electro", weight: "10 kg", mcoin: null },
+            "Maranello FXX-K": { gov: 25800000, fuel: "Premium", weight: "15 kg", mcoin: "3..." },
+            "Milner Blanco": { gov: 13000000, fuel: "Premium", weight: "60 kg", mcoin: "1..." },
+            "Wurtterm Rayenne Coupe": { gov: 15600000, fuel: "Premium", weight: "150 kg", mcoin: null },
+            "Aikawa GT-R50": { gov: 9000000, fuel: "Premium", weight: "110 kg", mcoin: "1..." },
+            "Emmett DMC-12": { gov: 600000, fuel: "Plus", weight: "90 kg", mcoin: null },
+            "Kagoshima Z800": { gov: 4800000, fuel: "Plus", weight: "0", mcoin: null },
+            "Blau & Weiss M4 F82": { gov: 4400000, fuel: "Premium", weight: "90 kg", mcoin: "2..." },
+            "Blau & Weiss M3 E46": { gov: 2800000, fuel: "Premium", weight: "90 kg", mcoin: "2..." },
+            "Buckingham EC120": { gov: 26000000, fuel: "Premium", weight: "1500 kg", mcoin: "1..." },
+            "Molsheim Wistral": { gov: 33400000, fuel: "Premium", weight: "20 kg", mcoin: "2..." },
+            "Ferruccio Revuelto": { gov: 23300000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Alfieri MC20": { gov: 14000000, fuel: "Premium", weight: "80 kg", mcoin: null },
+            "Daimler S-Class Z223": { gov: 13200000, fuel: "Premium", weight: "110 kg", mcoin: "2..." },
+            "Merlin Phantom Limo": { gov: 15900000, fuel: "Premium", weight: "140 kg", mcoin: "5..." },
+            "Rapid Hammer EV 6x6": { gov: 7200000, fuel: "Electro", weight: "250 kg", mcoin: "3..." },
+            "Britland Gover L460": { gov: 10400000, fuel: "Premium", weight: "140 kg", mcoin: "1..." },
+            "Felisina Diavel": { gov: 4700000, fuel: "Premium", weight: "0", mcoin: "1..." },
+            "Daimler 300 SLR": { gov: 1500000, fuel: "Plus", weight: "30 kg", mcoin: "2..." },
+            "Daimler CLS C257": { gov: 5800000, fuel: "Premium", weight: "90 kg", mcoin: "3..." },
+            "Blau & Weiss M3 G81 Touring": { gov: 6600000, fuel: "Premium", weight: "120 kg", mcoin: "4..." },
+            "Merosi Giulia": { gov: 3400000, fuel: "Plus", weight: "80 kg", mcoin: "2..." },
+            "Aikawa 400X": { gov: 3800000, fuel: "Plus", weight: "60 kg", mcoin: "4..." },
+            "Assar XC90": { gov: 2800000, fuel: "Plus", weight: "90 kg", mcoin: "2..." },
+            "Daimler X-Class BF": { gov: 20000000, fuel: "Diesel", weight: "250 kg", mcoin: "5..." },
+            "Maranello Timucua SP3": { gov: 23900000, fuel: "Premium", weight: "30 kg", mcoin: "1..." },
+            "Kramer XX": { gov: 10000000, fuel: "Diesel", weight: "20 kg", mcoin: "5..." },
+            "Ferruccio Brocca": { gov: 17900000, fuel: "Electro", weight: "150 kg", mcoin: "1..." },
+            "Maranello Primoagenito": { gov: 19600000, fuel: "Premium", weight: "160 kg", mcoin: "1..." },
+            "York Bamford DBX": { gov: 15700000, fuel: "Premium", weight: "150 kg", mcoin: "3..." },
+            "Betsy RUM TRX": { gov: 7500000, fuel: "Diesel", weight: "200 kg", mcoin: "4..." },
+            "Blau & Weiss iX": { gov: 5300000, fuel: "Electro", weight: "140 kg", mcoin: "3..." },
+            "Daimler E-Class S214 Estate": { gov: 8700000, fuel: "Premium", weight: "130 kg", mcoin: "4..." },
+            "Assar Solarstar 1": { gov: 4200000, fuel: "Premium", weight: "70 kg", mcoin: "2..." },
+            "Wayn Mustang S650": { gov: 6500000, fuel: "Premium", weight: "100 kg", mcoin: "3..." },
+            "Blau & Weiss 2 G42": { gov: 5700000, fuel: "Premium", weight: "55 kg", mcoin: "2..." },
+            "Haracio Paradise": { gov: 34500000, fuel: "Premium", weight: "25 kg", mcoin: "1..." },
+            "Angelholm RG-R": { gov: 29000000, fuel: "Premium", weight: "40 kg", mcoin: "1..." },
+            "Cornelian Corvette C8": { gov: 9400000, fuel: "Premium", weight: "50 kg", mcoin: "1..." },
+            "Castelsarrasin Escalibur GM TXL": { gov: 13900000, fuel: "Premium", weight: "170 kg", mcoin: "2..." },
+            "Daimler A-Class W177 (2)": { gov: 2300000, fuel: "Plus", weight: "110 kg", mcoin: "6..." },
+            "Fujisawa NSX NA1": { gov: 3500000, fuel: "Regular", weight: "65 kg", mcoin: "4..." },
+            "Aikawa GT-R R32": { gov: 2500000, fuel: "Regular", weight: "55 kg", mcoin: "1..." },
+            "Betsy Charger": { gov: 900000, fuel: "Regular", weight: "90 kg", mcoin: "5..." },
+            "Daimler 190 E": { gov: 700000, fuel: "Regular", weight: "60 kg", mcoin: "1..." },
+            "Genichi YZ 450 F": { gov: 1900000, fuel: "Regular", weight: "0", mcoin: "1..." },
+            "Buckingham R66": { gov: 18000000, fuel: "Diesel", weight: "1600 kg", mcoin: null },
+            "Angelholm Selip-CC850": { gov: 34500000, fuel: "Premium", weight: "30 kg", mcoin: "3..." },
+            "Elon All-Truck": { gov: 9500000, fuel: "Electro", weight: "210 kg", mcoin: "2..." },
+            "Hethel Aevij": { gov: 18600000, fuel: "Electro", weight: "5 kg", mcoin: "2..." },
+            "Daimler-AMX GT C192": { gov: 16000000, fuel: "Premium", weight: "60 kg", mcoin: "2..." },
+            "Wurtterm Mauer EV": { gov: 8200000, fuel: "Electro", weight: "160 kg", mcoin: "3..." },
+            "Atieva Jenks": { gov: 6500000, fuel: "Electro", weight: "90 kg", mcoin: "1..." },
+            "Britland Gover Sport L461": { gov: 11000000, fuel: "Premium", weight: "140 kg", mcoin: "1..." },
+            "Alexis LFA": { gov: 9400000, fuel: "Premium", weight: "45 kg", mcoin: "2..." },
+            "Blau & Weiss 5 G61": { gov: 6300000, fuel: "Premium", weight: "130 kg", mcoin: "4..." },
+            "Tessenderlo D8 GTO": { gov: 5600000, fuel: "Premium", weight: "0", mcoin: "1..." },
+            "Wayn Frey U725": { gov: 3500000, fuel: "Plus", weight: "60 kg", mcoin: "2..." },
+            "Fujisawa Hiroshi FK2": { gov: 1000000, fuel: "Plus", weight: "70 kg", mcoin: "1..." },
+            "Ferruccio Viareggio": { gov: 30000000, fuel: "Diesel", weight: "1000 kg", mcoin: null },
+            "Leslie Alex": { gov: 27700000, fuel: "Premium", weight: "20 kg", mcoin: "2..." },
+            "Ferruccio Borkert": { gov: 24200000, fuel: "Premium", weight: "0", mcoin: "2..." },
+            "Maranello Flaman J50": { gov: 22700000, fuel: "Premium", weight: "15 kg", mcoin: "3..." },
+            "Wayn Coronet V GT": { gov: 3400000, fuel: "Premium", weight: "60 kg", mcoin: "1..." },
+            "Ferruccio Hurricaine Spyder": { gov: 17100000, fuel: "Premium", weight: "50 kg", mcoin: "6..." },
+            "Daimler-AMX SL R232": { gov: 11200000, fuel: "Premium", weight: "60 kg", mcoin: "3..." },
+            "Milner Benteygo II": { gov: 16900000, fuel: "Diesel", weight: "160 kg", mcoin: "1..." },
+            "York Bamford DB11 Cabrio": { gov: 12000000, fuel: "Premium", weight: "50 kg", mcoin: "6..." },
+            "Alexis LC 500": { gov: 12700000, fuel: "Premium", weight: "75 kg", mcoin: "1..." },
+            "Wurtterm Paramera G2 Spor...": { gov: 10000000, fuel: "Premium", weight: "140 kg", mcoin: "3..." },
+            "Daimler EQ5": { gov: 9500000, fuel: "Electro", weight: "100 kg", mcoin: "2..." },
+            "Alfieri Turin": { gov: 7200000, fuel: "Plus", weight: "140 kg", mcoin: "1..." },
+            "Cornelian Corvette C1": { gov: 1000000, fuel: "Regular", weight: "100 kg", mcoin: "1..." },
+            "Horen TT 8S Cabrio": { gov: 7500000, fuel: "Plus", weight: "50 kg", mcoin: "4..." },
+            "Blau & Weiss i8 Roadster": { gov: 5600000, fuel: "Electro", weight: "40 kg", mcoin: "1..." },
+            "ALEC Mich": { gov: 2600000, fuel: "Plus", weight: "110 kg", mcoin: "2..." },
+            "Rapid Hammer 4x4": { gov: 2900000, fuel: "Diesel", weight: "160 kg", mcoin: "1..." },
+            "Matsuda MX-V NA": { gov: 300000, fuel: "Regular", weight: "50 kg", mcoin: "2..." },
+            "Fujisawa Hiroshi EK6": { gov: 400000, fuel: "Regular", weight: "45 kg", mcoin: null },
+            "Wulfsborg Wolf Mk 2": { gov: 200000, fuel: "Regular", weight: "40 kg", mcoin: "1..." },
+            "Mayflower Calm": { gov: 200000, fuel: "Regular", weight: "85 kg", mcoin: null },
+            "Cornelian Impala": { gov: 400000, fuel: "Regular", weight: "95 kg", mcoin: null },
+            "Buckingham AH-6": { gov: 22000000, fuel: "Diesel", weight: "1600 kg", mcoin: null },
+            "BJA Snowshark": { gov: 1000000, fuel: "Diesel", weight: "0", mcoin: null },
+            "Molsheim Heyl": { gov: 36000000, fuel: "Premium", weight: "15 kg", mcoin: "6..." },
+            "Ferruccio Mrija": { gov: 24200000, fuel: "Premium", weight: "0", mcoin: "5..." },
+            "Merlin Rosenthal": { gov: 17500000, fuel: "Electro", weight: "80 kg", mcoin: "5..." },
+            "Maranello Manzoni": { gov: 14900000, fuel: "Premium", weight: "50 kg", mcoin: "5..." },
+            "Horen Q8 I-tron": { gov: 10400000, fuel: "Electro", weight: "110 kg", mcoin: "4..." },
+            "Daimler CLE C236": { gov: 7800000, fuel: "Premium", weight: "45 kg", mcoin: "4..." },
+            "Assar EX90": { gov: 8600000, fuel: "Electro", weight: "100 kg", mcoin: "4..." },
+            "Daimler GLC Coupe C254": { gov: 7000000, fuel: "Premium", weight: "90 kg", mcoin: "4..." },
+            "Elon Line 3": { gov: 4500000, fuel: "Electro", weight: "70 kg", mcoin: "4..." },
+            "Aikawa 350Z": { gov: 3000000, fuel: "Plus", weight: "45 kg", mcoin: "4..." },
+            "Rimus 4-VR": { gov: 31300000, fuel: "Electro", weight: "25 kg", mcoin: "5..." },
+            "Lumi SU7": { gov: 7500000, fuel: "Electro", weight: "80 kg", mcoin: "5..." },
+            "Maranello Otina": { gov: 6200000, fuel: "Premium", weight: "70 kg", mcoin: "5..." },
+            "AKI Turboweek NQ5": { gov: 3900000, fuel: "Premium", weight: "115 kg", mcoin: "4..." },
+            "AKI EV6": { gov: 4000000, fuel: "Electro", weight: "85 kg", mcoin: "4..." },
+            "Hebeı F7": { gov: 4100000, fuel: "Plus", weight: "80 kg", mcoin: "4..." },
+            "Matsuda 3 BM": { gov: 1500000, fuel: "Regular", weight: "55 kg", mcoin: "4..." },
+            "Daimler ML": { gov: 2400000, fuel: "Plus", weight: "90 kg", mcoin: "4..." },
+            "Fujisawa RSX": { gov: 1000000, fuel: "Regular", weight: "45 kg", mcoin: "5..." },
+            "Mayflower Heritz": { gov: 500000, fuel: "Regular", weight: "35 kg", mcoin: "4..." },
+            "Daimler AMX F1": { gov: 27100000, fuel: "Premium", weight: "0", mcoin: null },
+            "York Bamford Newey": { gov: 29300000, fuel: "Premium", weight: "5 kg", mcoin: "5..." },
+            "Leslie Melville": { gov: 22000000, fuel: "Premium", weight: "35 kg", mcoin: "5..." },
+            "Milner Doncker Wolf": { gov: 16900000, fuel: "Premium", weight: "75 kg", mcoin: "5..." },
+            "Merlin Ghost II": { gov: 17600000, fuel: "Premium", weight: "90 kg", mcoin: "4..." },
+            "Blau & Weiss S1000RR": { gov: 4900000, fuel: "Premium", weight: "0", mcoin: "4..." },
+            "Ferruccio De Silva": { gov: 12000000, fuel: "Premium", weight: "30 kg", mcoin: "5..." },
+            "Horen Q7": { gov: 7300000, fuel: "Premium", weight: "100 kg", mcoin: "5..." },
+            "Matsuda RX-8": { gov: 2100000, fuel: "Regular", weight: "40 kg", mcoin: "5..." },
+            "Daimler Avatar": { gov: 23000000, fuel: "Electro", weight: "60 kg", mcoin: "5..." },
+            "Daimler S-Class VV222 Li...": { gov: 11900000, fuel: "Premium", weight: "80 kg", mcoin: "5..." },
+            "Maranello Moncia SP2": { gov: 19500000, fuel: "Premium", weight: "45 kg", mcoin: "5..." },
+            "York Bamford DB12": { gov: 13900000, fuel: "Premium", weight: "60 kg", mcoin: "5..." },
+            "Euge Langhals": { gov: 4000000, fuel: "Premium", weight: "120 kg", mcoin: "5..." },
+            "Britland Gover L322": { gov: 2100000, fuel: "Plus", weight: "100 kg", mcoin: "4..." },
+            "Tatsuro Corona Hachiroku": { gov: 625000, fuel: "Regular", weight: "70 kg", mcoin: "4..." },
+            "Armand 308": { gov: 400000, fuel: "Regular", weight: "75 kg", mcoin: "4..." },
+            "Dale 429": { gov: 25000000, fuel: "Diesel", weight: "1800 kg", mcoin: "4..." },
+            "Attar Motors Sixteen": { gov: 27100000, fuel: "Premium", weight: "15 kg", mcoin: "6..." },
+            "Angelholm Aghera": { gov: 28400000, fuel: "Premium", weight: "35 kg", mcoin: "5..." },
+            "Maranello 812": { gov: 19500000, fuel: "Premium", weight: "65 kg", mcoin: "6..." },
+            "York Bamford Vanquish Zagato": { gov: 17200000, fuel: "Premium", weight: "130 kg", mcoin: "5..." },
+            "Wurtterm 935": { gov: 16900000, fuel: "Premium", weight: "30 kg", mcoin: "5..." },
+            "KMG RC 16": { gov: 5100000, fuel: "Plus", weight: "0", mcoin: "5..." },
+            "Alexis LX 600": { gov: 7400000, fuel: "Premium", weight: "110 kg", mcoin: "6..." },
+            "Ferruccio Countach 2": { gov: 2200000, fuel: "Regular", weight: "50 kg", mcoin: "5..." },
+            "Horen R8 Type 42": { gov: 5300000, fuel: "Plus", weight: "70 kg", mcoin: "6..." },
+            "Hyeonji Cretia": { gov: 800000, fuel: "Regular", weight: "100 kg", mcoin: "5..." },
+            "Blau & Weiss 3-Series E30": { gov: 600000, fuel: "Regular", weight: "75 kg", mcoin: "5..." },
+            "Wayn Mustang '65": { gov: 300000, fuel: "Regular", weight: "65 kg", mcoin: "6..." },
+            "Wulfsborg Beetle": { gov: 200000, fuel: "Regular", weight: "40 kg", mcoin: "5..." },
+            "Elon Semie": { gov: 20000000, fuel: "Electro", weight: "20 kg", mcoin: "5..." },
+            "Ferruccio Vision GR": { gov: 28000000, fuel: "Premium", weight: "0", mcoin: "4..." },
+            "JSC Tustaira": { gov: 25400000, fuel: "Premium", weight: "40 kg", mcoin: "5..." },
+            "Daimler CLA": { gov: 3200000, fuel: "Electro", weight: "80 kg", mcoin: "5..." },
+            "Matsuda CX-5": { gov: 2500000, fuel: "Premium", weight: "100 kg", mcoin: "5..." },
+            "Blau & Weiss M1": { gov: 1600000, fuel: "Plus", weight: "40 kg", mcoin: "5..." },
+            "Aikawa Firelady 240Z": { gov: 1000000, fuel: "Plus", weight: "90 kg", mcoin: "6..." },
+            "Obwand Fairbird": { gov: 800000, fuel: "Plus", weight: "40 kg", mcoin: "5..." },
+            "Cornelian Camaro '67": { gov: 800000, fuel: "Regular", weight: "50 kg", mcoin: "5..." },
+            "Shufu 009": { gov: 5600000, fuel: "Electro", weight: "150 kg", mcoin: "5..." },
+            "Tatsuro Tundhra": { gov: 5600000, fuel: "Plus", weight: "200 kg", mcoin: "5..." },
+            "Assar Amazon": { gov: 300000, fuel: "Regular", weight: "60 kg", mcoin: "6..." },
+            "Cornelian Bel Air": { gov: 200000, fuel: "Regular", weight: "80 kg", mcoin: "6..." },
+            "Milner 8 Litre": { gov: 4000000, fuel: "Premium", weight: "80 kg", mcoin: "6..." },
+            "Molsheim Atlantic": { gov: 20000000, fuel: "Premium", weight: "110 kg", mcoin: "6..." },
+            "Ferruccio Siun": { gov: 23000000, fuel: "Premium", weight: "30 kg", mcoin: "6..." },
+            "Blau & Weiss 6-Series F13": { gov: 9000000, fuel: "Premium", weight: "90 kg", mcoin: "2..." },
+            "Leslie M1": { gov: 31700000, fuel: "Premium", weight: "0", mcoin: "5..." },
+            "Maranello 12Cilndre": { gov: 22000000, fuel: "Premium", weight: "60 kg", mcoin: "5..." },
+            "Ole Andreassen RH1250C": { gov: 800000, fuel: "Premium", weight: "0", mcoin: "5..." },
+            "Horen V3 8Y": { gov: 6000000, fuel: "Plus", weight: "80 kg", mcoin: "5..." },
+            "Iron 300": { gov: 4900000, fuel: "Regular", weight: "110 kg", mcoin: "2..." },
+            "Wulfsborg Teguan AD": { gov: 2100000, fuel: "Plus", weight: "100 kg", mcoin: "5..." },
+            "Tatsuro Corona E170": { gov: 700000, fuel: "Regular", weight: "65 kg", mcoin: null },
+            "Lyons F-Pace": { gov: 1000000, fuel: "Plus", weight: "130 kg", mcoin: "2..." },
+            "SAZ 3151": { gov: 1000000, fuel: "Regular", weight: "120 kg", mcoin: "2..." },
+            "Daimler C-Class A205": { gov: 5100000, fuel: "Plus", weight: "60 kg", mcoin: "2..." },
+            "Maranello GT4 Luso": { gov: 13000000, fuel: "Premium", weight: "130 kg", mcoin: "2..." },
+            "Rotorua Samura": { gov: 30000000, fuel: "Premium", weight: "0", mcoin: "2..." },
+            "Appolo Project EV.0": { gov: 33400000, fuel: "Premium", weight: "0", mcoin: "6..." },
+            "Ferruccio Fenumeno": { gov: 26900000, fuel: "Premium", weight: "100 kg", mcoin: "6..." },
+            "Leslie 570-S": { gov: 17500000, fuel: "Premium", weight: "70 kg", mcoin: "6..." },
+            "Daimler Sprynter B:907": { gov: 4000000, fuel: "Regular", weight: "190 kg", mcoin: "6..." },
+            "Shufu S-X": { gov: 8500000, fuel: "Electro", weight: "120 kg", mcoin: "6..." },
+            "Irvine R1T": { gov: 5700000, fuel: "Electro", weight: "150 kg", mcoin: "6..." },
+            "Tatsuro Alphart": { gov: 5100000, fuel: "Plus", weight: "100 kg", mcoin: "6..." },
+            "Daimler E-Class S211": { gov: 2900000, fuel: "Plus", weight: "90 kg", mcoin: "6..." },
+            "Tatsuro Land Cruiser 100": { gov: 1300000, fuel: "Regular", weight: "90 kg", mcoin: "6..." },
+            "Aikawa 240CX": { gov: 800000, fuel: "Regular", weight: "70 kg", mcoin: "6..." },
+            "Cornelian S10": { gov: 300000, fuel: "Regular", weight: "110 kg", mcoin: "6..." },
+            "Maranello Vision GR": { gov: 29100000, fuel: "Premium", weight: "0", mcoin: "6..." },
+            "Mockowia V2": { gov: 22100000, fuel: "Premium", weight: "50 kg", mcoin: "5..." },
+            "Merosi Stelvio": { gov: 10600000, fuel: "Premium", weight: "120 kg", mcoin: "6..." },
+            "Merlin Droptayl": { gov: 12300000, fuel: "Premium", weight: "0", mcoin: "6..." },
+            "Wurtterm Currera GT": { gov: 9000000, fuel: "Premium", weight: "30 kg", mcoin: "6..." },
+            "Ferruccio Murcielago": { gov: 10000000, fuel: "Premium", weight: "50 kg", mcoin: "6..." },
+            "Tatsuro Land Cruiser 250": { gov: 7800000, fuel: "Plus", weight: "130 kg", mcoin: "6..." },
+            "Betsy Charger LB": { gov: 6400000, fuel: "Plus", weight: "70 kg", mcoin: "5..." },
+            "Cornelian Corvette C6": { gov: 3000000, fuel: "Regular", weight: "90 kg", mcoin: "5..." },
+            "Matsuda MX-V ND": { gov: 2600000, fuel: "Regular", weight: "50 kg", mcoin: "6..." },
+            "Betsy Charger LX": { gov: 2600000, fuel: "Regular", weight: "80 kg", mcoin: "6..." },
+            "ALEC Hach J01": { gov: 2100000, fuel: "Electro", weight: "70 kg", mcoin: "6..." },
+            "Leslie GR": { gov: 15000000, fuel: "Premium", weight: "70 kg", mcoin: "5..." },
+            "Wayn Transil L2H2 W353": { gov: 4000000, fuel: "Diesel", weight: "185 kg", mcoin: "7..." },
+            "Cornelian Caprece": { gov: 1200000, fuel: "Regular", weight: "70 kg", mcoin: "7..." },
+            "Cornelian Wolt": { gov: 1000000, fuel: "Electro", weight: "90 kg", mcoin: "7..." },
+            "Superior 90G": { gov: 17000000, fuel: "Premium", weight: "100 kg", mcoin: "7..." },
+            "Merlin Boat Tayl": { gov: 20000000, fuel: "Premium", weight: "70 kg", mcoin: "7..." },
+            "Molsheim Brouillard": { gov: 29000000, fuel: "Premium", weight: "30 kg", mcoin: null },
+            "Freightways Cuscadia II": { gov: 20000000, fuel: "Diesel", weight: "24 t", mcoin: "6..." },
+            "Maranello 296": { gov: 23000000, fuel: "Premium", weight: "45 kg", mcoin: "6..." },
+            "Horen V5 B10": { gov: 6900000, fuel: "Plus", weight: "70 kg", mcoin: "6..." },
+            "Daimler WLE": { gov: 6000000, fuel: "Plus", weight: "160 kg", mcoin: "5..." },
+            "Haracio Huaira Coduilun...": { gov: 24000000, fuel: "Premium", weight: "0", mcoin: "7..." },
+            "Hyeonji M Vision 74": { gov: 15000000, fuel: "Electro", weight: "40 kg", mcoin: "6..." },
+            "Matsuda RX-7 VC": { gov: 5000000, fuel: "Premium", weight: "45 kg", mcoin: "6..." },
+            "Armand 406": { gov: 900000, fuel: "Regular", weight: "60 kg", mcoin: "6..." }
         };
 
+        let globalState = {};
+        let activeServer = "memphis";
         let currentAction = null;
 
-        function loadState() {
-            const saved = localStorage.getItem('majesticTrackerState');
+        function loadGlobalState() {
+            const saved = localStorage.getItem('majesticTrackerGlobal');
             if (saved) {
                 try {
-                    state = JSON.parse(saved);
+                    globalState = JSON.parse(saved);
                 } catch (e) {
                     console.error("Ошибка загрузки данных");
+                    globalState = {};
                 }
             }
+            
+            servers.forEach(server => {
+                if (!globalState[server]) {
+                    globalState[server] = {
+                        logs: [],
+                        totalBuy: 0,
+                        totalSell: 0,
+                        marketDatabase: {}
+                    };
+                }
+            });
         }
 
-        function saveState() {
-            localStorage.setItem('majesticTrackerState', JSON.stringify(state));
+        function saveGlobalState() {
+            localStorage.setItem('majesticTrackerGlobal', JSON.stringify(globalState));
         }
 
         function formatMoney(amount) {
@@ -580,6 +1795,52 @@
             return amount.toString();
         }
 
+        const serverMenu = document.getElementById('serverMenu');
+        servers.forEach((server, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'server-btn';
+            btn.id = `btn-${server}`;
+            btn.onclick = () => switchServer(server);
+            btn.innerHTML = `
+                <img src="media/${index + 1}.png" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\'><rect width=\\'24\\' height=\\'24\\' fill=\\'%23333\\'/></svg>'">
+                <span>${server.charAt(0).toUpperCase() + server.slice(1)}</span>
+            `;
+            serverMenu.appendChild(btn);
+        });
+
+        function switchServer(serverName) {
+            if (activeServer === serverName) {
+                serverMenu.classList.remove('open');
+                return;
+            }
+            
+            document.querySelectorAll('.server-btn').forEach(btn => btn.classList.remove('active-server'));
+            document.getElementById(`btn-${serverName}`).classList.add('active-server');
+            activeServer = serverName;
+            document.getElementById('currentServerName').innerText = serverName.charAt(0).toUpperCase() + serverName.slice(1);
+            render();
+            serverMenu.classList.remove('open');
+        }
+
+        document.getElementById('burgerMenu').addEventListener('click', () => {
+            serverMenu.classList.toggle('open');
+        });
+
+        loadGlobalState();
+        document.getElementById(`btn-memphis`).classList.add('active-server');
+        render();
+
+        function toggleGovPriceField() {
+            const checkbox = document.getElementById('useGovPrice');
+            const group = document.getElementById('govPriceGroup');
+            if (checkbox.checked) {
+                group.style.display = 'block';
+            } else {
+                group.style.display = 'none';
+                document.getElementById('govPrice').value = '';
+            }
+        }
+
         function openModal(action) {
             currentAction = action;
             const modal = document.getElementById('modalOverlay');
@@ -588,6 +1849,8 @@
             const notification = document.getElementById('notification');
             
             document.getElementById('actionForm').reset();
+            document.getElementById('govPriceGroup').style.display = 'none';
+            document.getElementById('autocomplete-list').style.display = 'none';
             notification.style.display = 'none';
             notification.className = 'notification';
             
@@ -610,23 +1873,77 @@
         }
 
         function resetAll() {
-            const confirmed = confirm("Вы уверены, что хотите полностью сбросить все данные? Это действие нельзя отменить.");
+            const confirmed = confirm(`Вы уверены, что хотите полностью сбросить все данные на сервере ${activeServer.toUpperCase()}? Это действие нельзя отменить.`);
             if (confirmed) {
-                state = {
+                globalState[activeServer] = {
                     logs: [],
                     totalBuy: 0,
                     totalSell: 0,
                     marketDatabase: {}
                 };
-                saveState();
+                saveGlobalState();
                 render();
             }
         }
 
+        const carNameInput = document.getElementById('carName');
+        const autocompleteList = document.getElementById('autocomplete-list');
+
+        carNameInput.addEventListener('input', function() {
+            const val = this.value.toLowerCase();
+            autocompleteList.innerHTML = '';
+            
+            if (!val) {
+                autocompleteList.style.display = 'none';
+                return;
+            }
+
+            let matches = [];
+            for (const key in vehiclesDatabase) {
+                if (key.toLowerCase().includes(val)) {
+                    matches.push(key);
+                }
+            }
+
+            if (matches.length > 0) {
+                autocompleteList.style.display = 'block';
+                matches.slice(0, 10).forEach(match => {
+                    const div = document.createElement('div');
+                    const regex = new RegExp(`(${val})`, "gi");
+                    const data = vehiclesDatabase[match];
+                    const scrapPrice = data.gov / 2; // Автоматический расчет свалки
+                    
+                    div.innerHTML = `
+                        <span>${match.replace(regex, "<strong>$1</strong>")}</span>
+                        <span class="ac-price">Гос: ${formatMoney(data.gov)} / Свалка: ${formatMoney(scrapPrice)}</span>
+                    `;
+                    
+                    div.addEventListener('click', function() {
+                        carNameInput.value = match;
+                        autocompleteList.style.display = 'none';
+                        
+                        if (document.getElementById('useGovPrice').checked) {
+                            document.getElementById('govPrice').value = data.gov;
+                        }
+                    });
+                    autocompleteList.appendChild(div);
+                });
+            } else {
+                autocompleteList.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target !== carNameInput) {
+                autocompleteList.style.display = 'none';
+            }
+        });
+
         document.getElementById('carName').addEventListener('input', function(e) {
             const name = e.target.value.toLowerCase().trim();
-            if (state.marketDatabase[name]) {
-                document.getElementById('marketPrice').value = state.marketDatabase[name];
+            const db = globalState[activeServer].marketDatabase;
+            if (db[name]) {
+                document.getElementById('marketPrice').value = db[name];
             }
         });
 
@@ -636,16 +1953,18 @@
             const carName = document.getElementById('carName').value.trim();
             const price = parseFloat(document.getElementById('price').value);
             const marketPrice = parseFloat(document.getElementById('marketPrice').value);
+            const useGov = document.getElementById('useGovPrice').checked;
+            const govPrice = useGov ? parseFloat(document.getElementById('govPrice').value) || 0 : 0;
+            
             const notification = document.getElementById('notification');
             
-            state.marketDatabase[carName.toLowerCase()] = marketPrice;
+            globalState[activeServer].marketDatabase[carName.toLowerCase()] = marketPrice;
 
             let difference = price - marketPrice;
             let actionText = '';
             let diffText = '';
             let extraInfo = '';
 
-            // ЛОГИКА ДЛЯ ВСПЛЫВАЮЩЕГО УВЕДОМЛЕНИЯ
             if (currentAction === 'buy') {
                 if (difference <= 0) {
                     notification.innerText = `Вы в плюсе на ${formatMoney(Math.abs(difference))} (Купили дешевле)`;
@@ -663,7 +1982,6 @@
                     notification.classList.add('loss');
                 }
             } else {
-                // Для рассрочки показываем просто разницу
                 if (difference <= 0) {
                     notification.innerText = `Выгодная сделка (дешевле на ${formatMoney(Math.abs(difference))})`;
                     notification.classList.add('profit');
@@ -678,7 +1996,6 @@
             notification.offsetHeight; 
             notification.style.animation = null; 
 
-            // Блокируем кнопку на время показа уведомления
             document.getElementById('submitBtn').disabled = true;
 
             setTimeout(() => {
@@ -689,13 +2006,13 @@
                     diffText = difference <= 0 
                         ? `<span class="color-profit">Дешевле рынка на ${formatMoney(difference)}</span>`
                         : `<span class="color-loss">Дороже рынка на ${formatMoney(difference)}</span>`;
-                    state.totalBuy += price;
+                    globalState[activeServer].totalBuy += price;
                 } else if (currentAction === 'sell') {
                     actionText = 'Продал';
                     diffText = difference >= 0 
                         ? `<span class="color-profit">Дороже рынка на ${formatMoney(difference)}</span>`
                         : `<span class="color-loss">Дешевле рынка на ${formatMoney(difference)}</span>`;
-                    state.totalSell += price;
+                    globalState[activeServer].totalSell += price;
                 } else if (currentAction === 'installment') {
                     actionText = 'Рассрочка';
                     const seller = document.getElementById('sellerName').value.trim();
@@ -706,6 +2023,14 @@
                         : `<span class="color-loss">Переплата ${formatMoney(difference)}</span>`;
                 }
 
+                // Получаем доп инфу для таблицы
+                const dbItem = vehiclesDatabase[carName];
+                let infoString = "Нет данных";
+                if (dbItem) {
+                    infoString = `Топливо: ${dbItem.fuel}\nВес: ${dbItem.weight}`;
+                    if (dbItem.mcoin) infoString += `\nM-Coins: ${dbItem.mcoin}`;
+                }
+
                 const logEntry = {
                     id: Date.now(),
                     action: currentAction,
@@ -713,33 +2038,42 @@
                     carName: carName,
                     price: price,
                     marketPrice: marketPrice,
+                    govPrice: govPrice,
                     diffHtml: diffText,
-                    extraInfo: extraInfo
+                    extraInfo: extraInfo,
+                    infoString: infoString
                 };
 
-                state.logs.push(logEntry);
-                saveState();
+                globalState[activeServer].logs.push(logEntry);
+                saveGlobalState();
                 render();
                 closeModal();
             }, 2000);
         });
 
         function render() {
+            const serverData = globalState[activeServer];
             const tbody = document.getElementById('logTableBody');
             tbody.innerHTML = '';
 
-            state.logs.forEach(log => {
+            serverData.logs.forEach(log => {
                 const tr = document.createElement('tr');
                 
                 let actionClass = 'buy-text';
                 if (log.action === 'sell') actionClass = 'sell-text';
                 if (log.action === 'installment') actionClass = 'installment-text';
 
+                // Формируем иконку инфо
+                const infoTooltip = log.infoString || "Нет данных";
+                const infoHtml = `<div class="info-icon" data-info="${infoTooltip}">i</div>`;
+
                 tr.innerHTML = `
                     <td class="action-type ${actionClass}">${log.actionText}</td>
                     <td>${log.carName}</td>
+                    <td>${infoHtml}</td>
                     <td>${formatMoney(log.price)}</td>
                     <td>${formatMoney(log.marketPrice)}</td>
+                    <td>${log.govPrice ? formatMoney(log.govPrice) : '-'}</td>
                     <td>${log.diffHtml} ${log.extraInfo ? `<br><small style="color:#aaa">${log.extraInfo}</small>` : ''}</td>
                 `;
                 tbody.appendChild(tr);
@@ -750,21 +2084,21 @@
             const totalBalance = document.getElementById('totalBalance');
             const trackerGif = document.getElementById('trackerGif');
 
-            if (state.totalBuy > 0) {
+            if (serverData.totalBuy > 0) {
                 finBuy.classList.add('show');
-                finBuy.innerHTML = `Купил: ${formatMoney(state.totalBuy)}`;
+                finBuy.innerHTML = `Купил: ${formatMoney(serverData.totalBuy)}`;
             } else {
                 finBuy.classList.remove('show');
             }
 
-            if (state.totalSell > 0) {
+            if (serverData.totalSell > 0) {
                 finSell.classList.add('show');
-                finSell.innerHTML = `Продал: ${formatMoney(state.totalSell)}`;
+                finSell.innerHTML = `Продал: ${formatMoney(serverData.totalSell)}`;
             } else {
                 finSell.classList.remove('show');
             }
 
-            const balance = state.totalSell - state.totalBuy;
+            const balance = serverData.totalSell - serverData.totalBuy;
             totalBalance.classList.remove('positive', 'negative');
             
             if (balance > 0) {
@@ -777,15 +2111,12 @@
                 totalBalance.innerHTML = `Итог: 0`;
             }
 
-            if (state.logs.length > 0) {
+            if (serverData.logs.length > 0) {
                 trackerGif.classList.add('show');
             } else {
                 trackerGif.classList.remove('show');
             }
         }
-
-        loadState();
-        render();
     </script>
 </body>
 </html>
